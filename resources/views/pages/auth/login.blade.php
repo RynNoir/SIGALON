@@ -1,54 +1,59 @@
-<x-layouts::auth :title="__('Log in')">
+<x-layouts::auth :title="__('Masuk Staf')">
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
+        <div class="flex flex-col gap-1">
+            <span class="text-xs font-semibold uppercase tracking-wider text-primary">{{ __('Portal Staf') }}</span>
+            <flux:heading size="xl" level="1" class="text-ink!">{{ __('Masuk ke SIGALON') }}</flux:heading>
+            <flux:text class="text-muted!">{{ __('Gunakan email dan kata sandi akun staf Anda.') }}</flux:text>
+        </div>
 
-        <!-- Session Status -->
-        <x-auth-session-status class="text-center" :status="session('status')" />
+        <x-auth-session-status :status="session('status')" />
 
-
-        <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
+        <form
+            method="POST"
+            action="{{ route('login.store') }}"
+            class="flex flex-col gap-5"
+            x-data="{ submitting: false }"
+            x-on:submit="submitting = true"
+        >
             @csrf
 
-            <!-- Email Address -->
             <flux:input
                 name="email"
-                :label="__('Email address')"
+                :label="__('Email')"
                 :value="old('email')"
                 type="email"
                 required
                 autofocus
                 autocomplete="email"
-                placeholder="email@example.com"
+                placeholder="nama@contoh.com"
             />
 
-            <!-- Password -->
-            <div class="relative">
-                <flux:input
-                    name="password"
-                    :label="__('Password')"
-                    type="password"
-                    required
-                    autocomplete="current-password"
-                    :placeholder="__('Password')"
-                    viewable
-                />
+            <flux:input
+                name="password"
+                :label="__('Kata sandi')"
+                type="password"
+                required
+                autocomplete="current-password"
+                viewable
+            />
 
-                @if (Route::has('password.request'))
-                    <flux:link class="absolute top-0 text-sm end-0" :href="route('password.request')" wire:navigate>
-                        {{ __('Forgot your password?') }}
-                    </flux:link>
-                @endif
-            </div>
+            <flux:checkbox name="remember" :label="__('Ingat saya')" :checked="old('remember')" />
 
-            <!-- Remember Me -->
-            <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
-
-            <div class="flex items-center justify-end">
-                <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
-                    {{ __('Log in') }}
-                </flux:button>
-            </div>
+            <flux:button
+                variant="primary"
+                type="submit"
+                class="w-full"
+                data-test="login-button"
+                x-bind:disabled="submitting"
+            >
+                <span x-show="! submitting">{{ __('Masuk') }}</span>
+                <span x-show="submitting" x-cloak>{{ __('Memproses…') }}</span>
+            </flux:button>
         </form>
 
+        <div class="flex flex-col gap-1 rounded-xl bg-surface-low p-4 text-sm text-muted">
+            <p>{{ __('Lupa kata sandi? Hubungi Admin Cabang atau Super Admin untuk mengatur ulang.') }}</p>
+            <p>{{ __('Kasir dan Kurir menggunakan aplikasi Android SIGALON.') }}</p>
+        </div>
     </div>
 </x-layouts::auth>

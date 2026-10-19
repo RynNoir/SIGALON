@@ -1,50 +1,92 @@
 # Design System — SIGALON
 
 ## Arah visual
-**Aqua Professional:** minimalis, bersih, profesional, ringan, dan berorientasi pada tugas operasional.
+**Aqua Professional:** minimalis, bersih, profesional, ringan, dan berorientasi pada tugas operasional. Latar keunguan sangat muda, kartu putih berradius besar dengan bayangan halus, dan aksen biru-petrol.
+
+Referensi visual ada di `docs/design/README.md` dan `docs/design/references/`. Gambar referensi **hanya untuk gaya visual**. Fitur yang tidak ada di PRD tidak boleh ditiru, dan bila bertentangan, PRD yang berlaku.
 
 ## Token warna
+Sumber: palet template referensi (19 Oktober 2026), dengan penyesuaian kontras yang ditandai *.
+Token didefinisikan di `resources/css/app.css` (`@theme`). Gunakan nama kelas Tailwind di tabel ini, misalnya `bg-primary`, `text-muted`, `bg-surface-low`, dan jangan menulis hex langsung di Blade atau Flutter.
+
 | Token | Hex | Kelas Tailwind | Penggunaan |
 |---|---|---|---|
-| Navy | `#123B5D` | `navy` | Navigasi, heading, teks utama |
-| Teal | `#0EA5A4` | `teal` | Aksen dekoratif (ikon, garis, highlight). **Bukan** untuk teks atau latar tombol bertulisan putih |
-| Teal Strong | `#0F766E` | `teal-strong` / `accent` | Aksi utama, tombol, link aktif |
-| Ice Blue | `#E8F6F7` | `ice` | Latar panel informasi |
-| Cloud | `#F7F9FC` | `cloud` | Latar halaman |
-| White | `#FFFFFF` | `white` | Kartu dan form |
-| Success | `#15803D` | `success` | Selesai/berhasil |
-| Warning | `#F59E0B` | `warning` | Perlu perhatian/menunggu. Teks di atasnya wajib Navy, bukan putih |
-| Error | `#DC2626` | `danger` | Error, tindakan gagal |
-| Border | `#DCE5ED` | `line` | Border halus |
+| Primary | `#00647C` | `primary` | Tombol utama, link, angka penting (total, pendapatan), teks eyebrow |
+| Primary Bright | `#007F9D` | `primary-bright` | Item menu sidebar aktif, hover tombol utama |
+| Primary Soft | `#E2E7FF` | `primary-soft` | Tombol sekunder, kotak ikon pada stat card, pilihan yang tidak aktif |
+| Ink | `#131B2E` | `ink` | Teks utama dan heading |
+| Muted* | `#5B666B` | `muted` | Teks sekunder dan keterangan (template `#6E797E` digelapkan agar lulus 4.5:1) |
+| Surface | `#FAF8FF` | `surface` | Latar halaman |
+| Surface Low | `#F2F3FF` | `surface-low` | Header tabel, panel di dalam kartu, latar ringkasan |
+| White | `#FFFFFF` | `white` | Kartu, form, dan input |
+| Line | `#E2E7FF` | `line` | Garis pemisah dan border kartu bila diperlukan |
+| Outline | `#6E797E` | `outline` | Border elemen interaktif yang wajib terlihat (checkbox, radio, fokus) |
+| Info | `#275C81` di atas `#D6EBFF` | `info` / `info-soft` | Badge status proses |
+| Success* | `#047857` di atas `#DCFCE7` | `success` / `success-soft` | Selesai, aktif, berhasil (hijau template `#059669` hanya untuk titik dekoratif) |
+| Warning | `#92400E` di atas `#FEF3C7` | `warning` / `warning-soft` | Menunggu, perlu verifikasi, belum dibayar |
+| Danger | `#BA1A1A` di atas `#FFF0EF` | `danger` / `danger-soft` | Error, gagal, nilai pengeluaran, aksi destruktif |
 
-Token didefinisikan di `resources/css/app.css` (`@theme`). Warna aksen komponen Flux (`--color-accent`) memakai Teal Strong.
+Warna aksen komponen Flux (`--color-accent`) memakai **Primary**.
 
-### Kontras (WCAG AA, teks normal ≥ 4.5:1)
-Disetujui tim pada 19 Oktober 2026 karena Teal `#0EA5A4` dan Success `#16A34A` lama gagal kontras dengan teks putih.
-
+### Kontras (WCAG AA, teks normal ≥ 4.5:1, komponen UI ≥ 3:1)
 | Kombinasi | Rasio | Status |
 |---|---|---|
-| Putih di atas Teal Strong `#0F766E` | 5.47 | Lulus |
-| Putih di atas Success `#15803D` | 5.02 | Lulus |
-| Putih di atas Error `#DC2626` | 4.83 | Lulus |
-| Navy di atas Warning `#F59E0B` | 5.40 | Lulus |
-| Navy di atas putih | 11.61 | Lulus |
-| Putih di atas Teal `#0EA5A4` | 3.03 | Gagal — hanya untuk aksen dekoratif |
-| Putih di atas Warning `#F59E0B` | 2.15 | Gagal — jangan dipakai |
+| Putih di atas Primary | 6.74 | Lulus |
+| Putih di atas Primary Bright | 4.64 | Lulus |
+| Primary di atas Primary Soft | 5.49 | Lulus |
+| Ink di atas Surface | 16.29 | Lulus |
+| Muted di atas putih / Surface / Surface Low | 5.90 / 5.60 / 5.35 | Lulus |
+| Info di atas Info Soft | 5.86 | Lulus |
+| Success di atas Success Soft | 4.99 | Lulus |
+| Warning di atas Warning Soft | 6.37 | Lulus |
+| Danger di atas putih / Danger Soft | 6.46 / 5.83 | Lulus |
+| Outline di atas putih (komponen UI) | 4.47 | Lulus |
+| Muted template `#6E797E` di atas Surface | 4.24 | Gagal — jangan dipakai untuk teks |
+| Hijau template `#059669` di atas putih | 3.77 | Gagal — hanya untuk titik dekoratif |
+
+### Nada badge status
+Badge selalu berisi teks. Warna hanya sebagai penguat.
+
+| Status | Nada |
+|---|---|
+| COD: Diproses, Dijemput | Info |
+| COD: Diantar | Primary Soft dengan teks Primary |
+| COD: Selesai; akun Aktif; setoran Terverifikasi | Success |
+| Menunggu kurir/verifikasi; belum dibayar | Warning |
+| Gagal/ditolak | Danger |
+| Akun Nonaktif | Surface Low dengan teks Muted |
 
 ## Tipografi dan bentuk
-- Font: Inter (diunduh dari Bunny Fonts saat `npm run build` lewat `vite.config.js`, lalu di-host sendiri di `public/build`); gunakan Inter juga di Flutter agar konsisten.
-- Radius: 8–10 px untuk input/button; 10–14 px untuk card.
-- Tombol sentuh: target tinggi sekitar 44–48 px.
-- Shadow tipis; hindari glassmorphism berat, gradien berlebihan, dan animasi dekoratif.
-- Ikon: satu keluarga ikon konsisten, misalnya Lucide untuk web; gunakan padanan konsisten di Flutter.
+- **Font:** Plus Jakarta Sans untuk seluruh teks, dengan bobot 400/500/600/700. Font dimuat lewat `vite.config.js` (diunduh dari Bunny Fonts saat build lalu di-host sendiri). Gunakan font yang sama di Flutter.
+- **Skala teks:**
+  - Judul halaman: 28–32 px tebal.
+  - Judul seksi/kartu: 18–20 px semibold.
+  - Angka stat: 28–32 px tebal.
+  - Isi: 14–16 px.
+  - Label/keterangan: 12–13 px.
+  - Eyebrow: 11–12 px huruf kapital, semibold, `primary`, tracking lebar.
+- **Radius:** 8 px untuk input/tombol, 16 px untuk kartu, dan pill (`rounded-full`) untuk badge.
+- **Bayangan:** satu tingkat halus untuk kartu (`shadow-card`). Hindari bayangan tebal, glassmorphism, gradien berlebihan, dan animasi dekoratif.
+- **Input:** pakai input Flux bawaan (latar putih dengan border). Jangan meniru input tanpa border dari gambar referensi, karena batas input harus tetap terlihat.
+- **Tombol sentuh:** target tinggi sekitar 44–48 px.
+- **Ikon:** Heroicons (bawaan Flux). Jika ikon tidak tersedia, impor dari Lucide lewat `php artisan flux:icon <nama>`. Di Flutter, gunakan satu keluarga ikon yang padanannya konsisten.
+- **Mode tampilan:** hanya mode terang. Template tidak memiliki mode gelap, jadi jangan menambah varian `dark:` baru sampai diputuskan.
+
+## Pola komponen
+- **Header halaman:** eyebrow (opsional), judul, satu kalimat deskripsi, dan maksimal 1–2 tombol aksi di kanan.
+- **Stat card:** kartu putih berisi label, angka besar, keterangan satu baris, dan ikon dalam kotak `primary-soft` di kanan atas. Maksimal 4 kartu per baris.
+- **Tabel:** header huruf kapital kecil di atas `surface-low`, aksi di kolom terakhir, pagination di bawah, dan empty state di dalam tabel. Di ponsel, ubah menjadi daftar kartu.
+- **Input jumlah:** stepper (− angka +) dengan tombol pintasan.
+- **Pilihan bersegmen:** misalnya Tunai / QR statis. Yang terpilih `primary` dengan teks putih, yang lain `primary-soft`.
+- **Ringkasan total:** panel `surface-low` dengan total besar berwarna `primary`, selalu terlihat sebelum tombol simpan.
 
 ## Pola per platform
 ### Website admin
-- Sidebar pada desktop; navigasi responsif pada layar kecil.
-- Header: nama halaman, cabang aktif, notifikasi, profil.
-- Ringkasan metrik di atas; tabel/filter di bawah.
-- Super Admin dapat membandingkan atau memfilter cabang; Admin Cabang hanya melihat cabangnya.
+- Sidebar di desktop: logo, blok "Lokasi aktif" (Super Admin: pemilih cabang; Admin Cabang: label tetap), dan menu dengan item aktif berlatar `primary-bright`. Di layar kecil, sidebar menjadi menu yang bisa dibuka-tutup.
+- Topbar: tanggal hari ini, notifikasi internal, dan profil dengan label peran.
+- Menu hanya untuk fitur yang sudah ada dan sesuai peran. Pembatasan juga wajib di backend.
+- Ringkasan metrik di atas; tabel dan filter di bawah.
+- Super Admin dapat memfilter cabang; Admin Cabang hanya melihat cabangnya.
 
 ### Kasir Android
 - Form satu kolom dan urutan input logis.
@@ -72,7 +114,7 @@ Disetujui tim pada 19 Oktober 2026 karena Teal `#0EA5A4` dan Success `#16A34A` l
 - Loading/skeleton jika menunggu data.
 - Empty state dengan instruksi tindakan berikutnya.
 - Error state dengan pesan yang bisa ditindaklanjuti.
-- Success feedback setelah simpan.
+- Success feedback (toast) setelah simpan.
 - Disabled/loading state saat submit agar mencegah duplikasi.
 - Validasi form dan konfirmasi aksi destruktif.
 - Status tidak boleh dibedakan dengan warna saja; selalu sertakan label teks.
@@ -86,3 +128,4 @@ Disetujui tim pada 19 Oktober 2026 karena Teal `#0EA5A4` dan Success `#16A34A` l
 5. Aksesibilitas dan kontras yang memadai.
 6. Animasi ringan dan tidak menghambat kerja.
 7. Jangan menampilkan data cabang lain kepada staf cabang.
+8. Lebih ringkas daripada referensi: tampilkan hanya informasi yang dibutuhkan tugas dan didukung data nyata.

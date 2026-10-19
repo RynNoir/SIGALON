@@ -12,7 +12,7 @@ export default defineConfig({
             ],
             refresh: true,
             fonts: [
-                bunny('Inter', {
+                bunny('Plus Jakarta Sans', {
                     weights: [400, 500, 600, 700],
                 }),
             ],

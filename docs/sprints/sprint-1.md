@@ -27,6 +27,17 @@
 
 **Total pada J-01 yang diunggah:** 22 SP. Ini bukan konfirmasi kapasitas final untuk sprint dua minggu.
 
+## Referensi desain per story
+Baca `docs/design/README.md` sebelum mengerjakan UI. Gambar hanya untuk gaya visual. Ikuti bagian "Jangan ambil" dan tabel konflik di sana.
+
+| Story | Layar referensi (`docs/design/references/`) | Catatan |
+|---|---|---|
+| US-01 | `05-admin-dasbor-cabang.jpg` (kerangka sidebar/topbar), gaya kartu `02-pelanggan-masuk-daftar.jpg` | Tidak ada gambar login staf; pakai kartu sederhana email + password dengan token design system |
+| US-02 | `02-pelanggan-masuk-daftar.jpg` | Tambahkan tombol Google; tanpa "Pesan sebagai Tamu" |
+| US-03 | `01-pelanggan-landing.jpg` | Tambahkan peta Leaflet; jangan salin data/klaim dari gambar |
+| US-04, US-05 | `05-admin-dasbor-cabang.jpg`, stat card `09-admin-laporan.jpg` | Hanya metrik yang datanya ada |
+| US-06, US-07 | `10-admin-pengaturan-cabang-staf.jpg` | Tab profil cabang dan tabel staf saja |
+
 ## Perubahan/keputusan terbaru yang harus tercermin saat refinement
 - Role Kasir terpisah dari Kurir.
 - Pelanggan dapat memilih Google atau nomor HP + password (tanpa OTP) — perlu penambahan/penyesuaian AC.
@@ -70,6 +81,43 @@ Tambahkan catatan dengan format:
 - **Reviewer:**
 - **Status yang diusulkan:**
 - **Saran pesan commit (tidak dijalankan):**
+
+### US-01 — Login staf web dengan role
+- **Tanggal:** 19 Oktober 2026
+- **Story/Task:** US-01, branch `feature/US-01-login-staf-web-with-role`
+- **Dikerjakan oleh:** Reyhan (PIC) dengan bantuan AI (Claude Code)
+- **Keputusan PO yang dipakai (19 Okt 2026):**
+  - Kasir/Kurir ditolak di website dan diarahkan ke aplikasi Android.
+  - Akun nonaktif mendapat pesan umum.
+  - Fitur starter kit "hapus akun sendiri", "mode tampilan", dan "lupa kata sandi via email" dihapus. Reset kata sandi dilakukan admin lewat US-06/US-07.
+- **Perubahan:**
+  - `Fortify::authenticateUsing` di `app/Providers/FortifyServiceProvider.php`.
+  - `Role::canAccessWeb()` dan `User::canAccessStaffWeb()`.
+  - Middleware `app/Http/Middleware/EnsureStaffCanAccessWeb.php` dipasang di grup `web`; sesi yang tidak berhak dikeluarkan di setiap request.
+  - Halaman login staf dan halaman 429 berbahasa Indonesia.
+  - Kerangka admin: sidebar dengan "Lokasi aktif" dan label peran, mode terang saja.
+  - Terjemahan di `lang/id.json`, `lang/id/auth.php`, `lang/id/validation.php`.
+- **Acceptance criteria yang lulus (diuji otomatis):**
+  - Super Admin dan Admin Cabang bisa masuk.
+  - Kasir dan Kurir ditolak dengan pesan Android.
+  - Akun nonaktif, Admin Cabang tanpa cabang, password salah, dan email tidak dikenal mendapat pesan umum yang sama.
+  - Kasir nonaktif tidak membocorkan perannya.
+  - Percobaan dibatasi 5 kali per menit.
+  - Sesi Kasir dan akun yang dinonaktifkan di tengah sesi dikeluarkan.
+  - Tamu diarahkan ke halaman masuk.
+  - Sidebar hanya menampilkan cabang sendiri dan peran pengguna.
+  - Fitur yang dihapus mengembalikan 404.
+- **Tes dan hasil:**
+  - `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 50/50 lulus.
+  - `npm run build` berhasil.
+  - Smoke test HTTP: `/login` 200; `/register`, `/forgot-password`, `/settings/appearance` 404; `/dashboard` sebagai tamu 302.
+- **Yang belum selesai / blocker:**
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Tampilan belum diperiksa manual di browser (desktop dan ponsel).
+  - Isi halaman dasbor masih placeholder starter kit (bagian US-04/US-05).
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):** `feat(US-01): restrict admin website login to super admin and admin cabang`
 
 ## Keputusan sebelum mengunci backlog
 1. Konfirmasi daftar US-01 sampai US-07 masih menjadi scope Sprint 1.

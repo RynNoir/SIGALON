@@ -6,8 +6,9 @@ Mulai di sini:
 3. `docs/sprints/sprint-1.md` — scope dan AC Sprint 1.
 4. `docs/USER_STORIES_STATUS.md` — status story dan bukti.
 5. `docs/DEVELOPMENT_WORKFLOW.md` — alur kerja tim lima orang.
-6. `docs/DESIGN_SYSTEM.md` — pedoman UI/UX.
-7. `AGENTS.md` — instruksi umum untuk AI coding agent lain.
+6. `docs/DESIGN_SYSTEM.md` — pedoman UI/UX dan token warna.
+7. `docs/design/README.md` — referensi visual per layar (apa yang diambil dan apa yang tidak).
+8. `AGENTS.md` — instruksi umum untuk AI coding agent lain.
 
 ## Catatan
 - Dokumen ini adalah starter pack; salin ke root repository dan sesuaikan setelah direview tim.

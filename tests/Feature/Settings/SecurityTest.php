@@ -27,7 +27,7 @@ class SecurityTest extends TestCase
 
     public function test_security_settings_page_can_be_rendered(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->adminCabang()->create();
 
         $response = $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
@@ -35,13 +35,13 @@ class SecurityTest extends TestCase
 
         $response->assertOk();
 
-        $response->assertSee('Two-factor authentication');
-        $response->assertSee('Enable 2FA');
+        $response->assertSee('Autentikasi dua faktor');
+        $response->assertSee('Aktifkan 2FA');
     }
 
     public function test_security_settings_page_requires_password_confirmation_when_enabled(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->adminCabang()->create();
 
         $response = $this->actingAs($user)
             ->get(route('security.edit'));
@@ -53,21 +53,21 @@ class SecurityTest extends TestCase
     {
         config(['fortify.features' => []]);
 
-        $user = User::factory()->create();
+        $user = User::factory()->adminCabang()->create();
 
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
             ->get(route('security.edit'))
             ->assertOk()
-            ->assertSee('Update password')
+            ->assertSee('Ubah kata sandi')
             ->assertDontSee('Manage your passkeys for passwordless sign-in')
             ->assertDontSee('Add a passkey to sign in without a password')
-            ->assertDontSee('Two-factor authentication');
+            ->assertDontSee('Autentikasi dua faktor');
     }
 
     public function test_two_factor_authentication_disabled_when_confirmation_abandoned_between_requests(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->adminCabang()->create();
 
         $user->forceFill([
             'two_factor_secret' => encrypt('test-secret'),
@@ -90,7 +90,7 @@ class SecurityTest extends TestCase
 
     public function test_password_can_be_updated(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->adminCabang()->create([
             'password' => Hash::make('password'),
         ]);
 
@@ -109,7 +109,7 @@ class SecurityTest extends TestCase
 
     public function test_correct_password_must_be_provided_to_update_password(): void
     {
-        $user = User::factory()->create([
+        $user = User::factory()->adminCabang()->create([
             'password' => Hash::make('password'),
         ]);
 
