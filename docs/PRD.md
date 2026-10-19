@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD) — SIGALON
 
-**Versi:** 1.0-draft  
+**Versi:** 1.1-draft (19 Okt 2026: palet warna dan referensi visual dari template tim, §10 dan §15)  
 **Tanggal acuan:** 19 Oktober 2026  
 **Status:** Draft kerja; bukan pengganti validasi Product Owner dan mitra  
 **Proyek formal:** Digitalisasi Proses Transaksi dan Distribusi Air Galon pada CV. Aufa  
@@ -206,10 +206,12 @@ Urutan utama: `diproses → dijemput → diantar → selesai`. Status hanya bole
 
 ## 10. UX dan design system
 
-Arah visual: **Aqua Professional** — minimalis, bersih, profesional, dengan navy sebagai struktur dan teal sebagai aksen.
+Arah visual: **Aqua Professional** — minimalis, bersih, profesional; latar keunguan muda, kartu putih, aksen biru-petrol.
 
-- Navy `#123B5D`, teal `#0EA5A4`, ice blue `#E8F6F7`, latar `#F7F9FC`.
-- Font yang disarankan: Inter atau Plus Jakarta Sans.
+- Warna utama: primary `#00647C`, teks `#131B2E`, latar halaman `#FAF8FF`. Token lengkap, termasuk warna status dan hasil cek kontras, ada di `docs/DESIGN_SYSTEM.md`.
+- Font: Plus Jakarta Sans (web dan mobile).
+- Mode tampilan: terang saja.
+- Referensi visual: `docs/design/README.md` (gambar di `docs/design/references/`). Referensi hanya untuk gaya visual. Fitur, harga, label, dan data di gambar yang tidak ada di PRD tidak diimplementasikan, dan bila bertentangan, PRD yang berlaku.
 - Admin: sidebar, ringkasan, tabel, filter, aksi cepat.
 - Kasir: form satu kolom, input jumlah jelas, total otomatis, tombol simpan besar.
 - Kurir: kartu tugas, alamat/status terlihat, tombol aksi besar.
@@ -259,7 +261,7 @@ User story baru boleh berstatus `DONE` jika:
 - Hindari dua orang mengedit file yang sama tanpa koordinasi.
 - Buat pull request atau proses review setara sebelum menggabungkan fitur.
 - Satu story dapat memiliki beberapa commit manual; jangan memaksa satu commit per story.
-- AI dilarang menjalankan `git commit`, `git push`, merge, atau mengubah branch tanpa instruksi eksplisit.
+- AI dilarang menjalankan `git commit`, `git push`, merge, rebase, atau reset tanpa instruksi eksplisit. AI boleh membuat dan berpindah ke branch story sesuai konvensi penamaan.
 - Setelah menyelesaikan tugas, AI melaporkan file berubah, test yang dijalankan, hasil, hal belum selesai, dan menyarankan pesan commit saja.
 - Status story diperbarui oleh penanggung jawab setelah bukti selesai diverifikasi.
 - Jangan menandai `DONE` hanya karena implementasi ditulis; harus ada bukti tes/review.
@@ -276,6 +278,10 @@ User story baru boleh berstatus `DONE` jika:
 8. Target performa numerik dan perangkat Android minimum belum ditetapkan.
 9. Hosting/domain dan jadwal pengujian/UAT/implementasi perlu direncanakan kemudian.
 10. Sprint 1 backlog dan J-01 perlu direkonsiliasi dengan tanggal sprint 2 minggu dan keputusan terbaru.
+11. Template referensi menampilkan halaman kasir di website. Apakah Kasir juga membutuhkan akses website, atau tetap Android saja seperti §4? (Lihat `docs/design/README.md`, konflik K1.)
+12. Template referensi menampilkan "Pesan sebagai Tamu". Apakah pelanggan boleh memesan tanpa akun? Sampai diputuskan: wajib login (§4). (Konflik K3.)
+13. Data mitra untuk konten publik: nama, alamat, dan koordinat cabang, jam operasional, nomor WhatsApp, serta klaim layanan/higienitas yang boleh ditampilkan. (Konflik K8–K9.)
+14. Grafik pada laporan membutuhkan library grafik karena Flux versi gratis tidak menyediakannya. Library mana yang disetujui?
 
 ## 16. Prioritas saat ini
 

@@ -10,6 +10,7 @@ Urutan prioritas:
 4. `docs/USER_STORIES_STATUS.md` untuk status yang sudah diverifikasi.
 5. `docs/DEVELOPMENT_WORKFLOW.md` dan `docs/DESIGN_SYSTEM.md`.
 6. Kode yang sudah ada dan tesnya.
+7. `docs/design/README.md` dan gambar `docs/design/references/` — referensi visual saja, prioritas terendah untuk urusan fitur.
 
 Jika dua sumber bertentangan, jangan diam-diam memilih. Jelaskan konflik dan minta keputusan atau tandai sebagai keputusan terbuka.
 
@@ -21,7 +22,11 @@ Jika dua sumber bertentangan, jangan diam-diam memilih. Jelaskan konflik dan min
 
 ## 3. Larangan Git
 **Jangan pernah melakukan commit otomatis per fitur atau per user story.**
-- Dilarang menjalankan `git commit`, `git push`, merge, rebase destruktif, atau mengubah branch tanpa instruksi eksplisit dari pengguna.
+- Dilarang menjalankan `git commit`, `git push`, merge, rebase, atau `git stash` tanpa instruksi eksplisit dari pengguna.
+- AI **boleh** membuat branch baru dan berpindah ke branch story yang sedang dikerjakan (`git switch -c feature/US-XX-nama-singkat`, atau `fix/...` dan `docs/...` sesuai `docs/DEVELOPMENT_WORKFLOW.md`). Syaratnya:
+  - Jalankan `git status` lebih dulu.
+  - Jika ada perubahan lokal yang bukan milik story ini, laporkan dan tanyakan dulu sebelum pindah branch.
+  - Jangan menghapus, me-rename, atau me-reset branch.
 - Setelah menyelesaikan pekerjaan, berikan saran pesan commit, misalnya `feat(US-01): add staff role-based login`.
 - Pengguna akan memeriksa diff, melakukan commit, dan push secara manual.
 - Jangan melakukan reset, checkout yang membuang perubahan, atau menghapus perubahan pengguna.
@@ -30,7 +35,7 @@ Jika dua sumber bertentangan, jangan diam-diam memilih. Jelaskan konflik dan min
 ## 4. Cara memulai setiap tugas
 1. Baca `docs/sprints/sprint-1.md` dan `docs/USER_STORIES_STATUS.md`.
 2. Identifikasi kode story, tujuan, acceptance criteria, status, pemilik, dan dependensi.
-3. Periksa struktur proyek dan status Git sebelum mengubah file.
+3. Periksa struktur proyek dan status Git sebelum mengubah file. Jika belum berada di branch story, buat atau pindah ke branch tersebut sesuai §3.
 4. Buat rencana singkat dan daftar file yang kemungkinan berubah.
 5. Implementasikan perubahan terkecil yang memenuhi acceptance criteria.
 6. Jalankan tes, lint, formatter, atau build yang relevan dan tersedia.
@@ -52,6 +57,9 @@ Jika dua sumber bertentangan, jangan diam-diam memilih. Jelaskan konflik dan min
 
 ## 6. Design/UX
 Ikuti `docs/DESIGN_SYSTEM.md`: Aqua Professional, responsive, minimalis, state loading/empty/error/success, form jelas, aksesibilitas dan ukuran sentuh yang nyaman.
+- Gunakan token warna Tailwind dari `resources/css/app.css` (`primary`, `ink`, `muted`, `surface`, dan seterusnya); jangan menulis hex langsung di view.
+- Font Plus Jakarta Sans; hanya mode terang; komponen Flux UI versi gratis lebih dulu.
+- Sebelum membuat UI, baca `docs/design/README.md` untuk layar yang relevan dengan story (pemetaan di `docs/sprints/sprint-1.md`). Ambil pola visualnya saja; jangan menyalin fitur, harga, label, atau data contoh dari gambar yang tidak ada di PRD. Jika gambar bertentangan dengan PRD, ikuti PRD dan laporkan konfliknya.
 
 ## 7. Status story dan handoff
 Status yang diizinkan: `TODO`, `IN_PROGRESS`, `BLOCKED`, `REVIEW`, `DONE`.

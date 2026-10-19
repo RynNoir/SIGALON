@@ -66,6 +66,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Akun boleh memakai website admin: aktif, perannya web, dan sudah terikat cabang bila perannya mewajibkan.
+     */
+    public function canAccessStaffWeb(): bool
+    {
+        return $this->is_active
+            && $this->role->canAccessWeb()
+            && (! $this->role->requiresCabang() || $this->cabang_id !== null);
+    }
+
+    /**
      * Get the user's initials
      */
     public function initials(): string

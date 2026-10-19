@@ -16,7 +16,7 @@ Jangan mengelola status terpisah di banyak spreadsheet/chat tanpa sinkronisasi. 
 ## 3. Alur kerja per story
 1. PO memastikan story memenuhi DoR.
 2. Story diberi ID stabil, acceptance criteria, PIC, reviewer, dan dependensi.
-3. PIC membuat branch, contoh `feature/US-01-staff-auth`.
+3. PIC membuat branch dari `main` terbaru, contoh `feature/US-01-staff-auth`. AI boleh membuatkan branch atas perintah PIC, tetapi `git pull` tetap dilakukan PIC.
 4. PIC mengerjakan story/task dan menambahkan tes.
 5. Developer menjalankan formatter, tes relevan, dan memeriksa diff.
 6. PIC membuka PR atau meminta review melalui mekanisme repo.
@@ -80,4 +80,4 @@ Catat blocker dan pemilik tindak lanjut. Jangan jadikan Daily Scrum sebagai lapo
 ```
 
 ## 9. Kebijakan Git wajib
-AI tidak boleh menjalankan `git commit`, `git push`, merge, atau tindakan Git destruktif tanpa instruksi eksplisit. AI hanya memberi saran pesan commit. Setiap developer melakukan commit manual setelah memeriksa diff dan tes.
+AI tidak boleh menjalankan `git commit`, `git push`, merge, rebase, reset, stash, atau tindakan Git destruktif tanpa instruksi eksplisit. AI boleh membuat dan berpindah ke branch story (`git switch -c feature/US-XX-...`) setelah memeriksa `git status`. AI tidak boleh menghapus atau me-reset branch. AI hanya memberi saran pesan commit. Setiap developer melakukan commit manual setelah memeriksa diff dan tes.

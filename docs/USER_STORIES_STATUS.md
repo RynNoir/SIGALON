@@ -5,7 +5,7 @@
 
 | ID | Ringkasan | PIC J-01 | Status | Tes/bukti | Blocker/keputusan |
 |---|---|---|---|---|---|
-| US-01 | Login staf web dengan role | Reyhan | TODO — konfirmasi | Belum dicatat | Pastikan role Kasir terpisah; pembatasan cabang |
+| US-01 | Login staf web dengan role | Reyhan | REVIEW | `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 50/50 (19 Okt 2026). Tes: `tests/Feature/Auth/StaffWebAccessTest.php`, `tests/Unit/RoleTest.php`. Smoke test HTTP lulus | Reviewer belum ditunjuk (DoD no. 8). Cek visual di browser belum dilakukan. Branch `feature/US-01-login-staf-web-with-role` |
 | US-02 | Login pelanggan | Velisa | TODO — konfirmasi | Belum dicatat | Google + nomor HP/password; cara mengaitkan akun |
 | US-03 | Landing page dan peta cabang | Shalwa | TODO — konfirmasi | Belum dicatat | Koordinat/nama/alamat cabang |
 | US-04 | Dashboard Super Admin | Reyhan | TODO — konfirmasi | Belum dicatat | Sumber data transaksi dan definisi pendapatan |

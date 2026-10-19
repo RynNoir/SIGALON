@@ -26,4 +26,12 @@ enum Role: string
     {
         return $this !== self::SuperAdmin;
     }
+
+    /**
+     * Kasir dan Kurir bekerja lewat aplikasi Android (PRD §4); website admin hanya untuk peran ini.
+     */
+    public function canAccessWeb(): bool
+    {
+        return in_array($this, [self::SuperAdmin, self::AdminCabang], true);
+    }
 }

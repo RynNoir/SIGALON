@@ -13,8 +13,10 @@ parameters:
     level: 7
 
     ignoreErrors:
-        # Trait ini hanya dipakai oleh komponen Livewire single-file di resources/views/pages/settings/⚡profile.blade.php,
-        # yang berada di luar `paths` sehingga PHPStan menganggapnya tidak terpakai.
+        # Trait ini hanya dipakai oleh komponen Livewire single-file di resources/views/pages/settings/
+        # (⚡profile, ⚡security), yang berada di luar `paths` sehingga PHPStan menganggapnya tidak terpakai.
         -
             identifier: trait.unused
-            path: app/Concerns/ProfileValidationRules.php
+            paths:
+                - app/Concerns/ProfileValidationRules.php
+                - app/Concerns/PasswordValidationRules.php
