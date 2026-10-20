@@ -119,6 +119,50 @@ Tambahkan catatan dengan format:
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):** `feat(US-01): restrict admin website login to super admin and admin cabang`
 
+### US-02 — Login pelanggan
+- **Tanggal:** 20 Oktober 2026
+- **Story/Task:** US-02, branch `feature/US-02-login-pelanggan`
+- **Dikerjakan oleh:** Velisa (PIC) dengan bantuan AI (Antigravity)
+- **Keputusan PO yang dipakai (20 Okt 2026):**
+  - Autentikasi mencakup login Google DAN nomor HP + kata sandi.
+  - Akun pelanggan menggunakan tabel `users` dengan `Role::Pelanggan`.
+  - Akun Google dan akun nomor HP berdiri sendiri (tidak ada penautan akun otomatis untuk mencegah risiko pengambilalihan akun tanpa OTP).
+  - Login Google mencari user hanya via `google_id`; jika email sudah dipakai akun lain, akses ditolak secara aman.
+  - Tautan bantuan lupa kata sandi mengarah ke `wa.me` nomor admin dari konfigurasi environment (`ADMIN_WHATSAPP_NUMBER` di `config/services.php`).
+  - Setelah login berhasil, pelanggan diarahkan ke `route('home')`.
+- **Perubahan:**
+  - Migrasi `database/migrations/2026_10_20_000001_add_pelanggan_fields_to_users_table.php` (menambahkan `phone`, `google_id`, nullable `email` dan `password`).
+  - Penambahan `Role::Pelanggan` dan helper `Role::staffCases()` pada `app/Enums/Role.php`.
+  - Model `app/Models/User.php` diperbarui dengan fillable `phone`, `google_id`, dan helper `isPelanggan()`.
+  - Middleware `app/Http/Middleware/EnsureStaffCanAccessWeb.php` disesuaikan untuk mengizinkan pelanggan di halaman publik/pelanggan (`isCustomerPage()`) dan memblokir (403) akses pelanggan ke area staf (`/dashboard`, `/settings/*`), serta mengarahkan pelanggan dari `/login` ke `route('home')`.
+  - Controller `app/Http/Controllers/Auth/CustomerAuthController.php` (login nomor HP, registrasi pelanggan, logout) dan `app/Http/Controllers/Auth/GoogleAuthController.php` (Google OAuth via Socialite).
+  - Tampilan kartu form masuk/daftar pelanggan di `resources/views/pages/auth/customer-login.blade.php` mengacu pada referensi desain `02-pelanggan-masuk-daftar.jpg` dengan token Aqua Professional.
+  - Komponen navbar pelanggan di `resources/views/components/customer-navbar.blade.php` dan integrasi minimal di `resources/views/welcome.blade.php`.
+- **Acceptance criteria yang lulus (diuji otomatis):**
+  - AC 2.1: Pelanggan dapat masuk dengan nomor HP + password valid dan diarahkan ke `home`.
+  - AC 2.2: Pendaftaran pelanggan baru via nomor HP tersimpan dengan role `pelanggan` dan otomatis login.
+  - AC 2.3: Pelanggan dapat login/daftar via Google OAuth.
+  - AC 2.4: Nomor HP/password salah mengembalikan pesan error umum tanpa membocorkan nomor terdaftar.
+  - AC 2.5: Percobaan login nomor HP dibatasi maksimal 5 kali per menit (HTTP 429).
+  - AC 2.6: Akun pelanggan nonaktif ditolak saat masuk.
+  - AC 2.7: Staf yang mencoba login di form pelanggan ditolak dengan pesan yang mengarahkan ke `/login`.
+  - AC 2.8: Navbar di `home` menampilkan identitas pelanggan dan tombol keluar saat login aktif.
+  - AC 2.9: Pelanggan dilarang keras mengakses dasbor dan pengaturan staf (HTTP 403), dan dialihkan saat membuka `/login`.
+  - AC 2.10: Link bantuan lupa kata sandi mengarah ke `wa.me` admin dari konfigurasi environment.
+- **Tes dan hasil:**
+  - `vendor/bin/pint --test`: Lulus.
+  - `vendor/bin/phpstan analyse --memory-limit=1G`: 0 error.
+  - `php artisan test`: 74/74 tes lulus (238 assertions), mencakup 50 tes lama US-01 dan 24 tes baru US-02.
+  - `npm run build`: Berhasil tanpa error.
+- **Catatan untuk PIC story berikutnya (US-03):**
+  - Story berikutnya yang menambahkan rute/halaman publik pelanggan baru harus mendaftarkan pola rutenya ke method `isCustomerPage()` di `app/Http/Middleware/EnsureStaffCanAccessWeb.php` agar sesi pelanggan tidak tertolak.
+- **Yang belum selesai / blocker:**
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Nilai asli `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, dan `ADMIN_WHATSAPP_NUMBER` masih menggunakan placeholder/nomor contoh sementara.
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):** `feat(US-02): implement customer authentication via phone and google oauth`
+
 ## Keputusan sebelum mengunci backlog
 1. Konfirmasi daftar US-01 sampai US-07 masih menjadi scope Sprint 1.
 2. Tentukan apakah US-02 mencakup login Google saja atau Google + nomor HP/password.

@@ -70,6 +70,15 @@ class UserFactory extends Factory
         ]);
     }
 
+    public function pelanggan(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => Role::Pelanggan,
+            'cabang_id' => null,
+            'phone' => '628'.fake()->unique()->numerify('##########'),
+        ]);
+    }
+
     public function inactive(): static
     {
         return $this->state(fn (array $attributes) => [
