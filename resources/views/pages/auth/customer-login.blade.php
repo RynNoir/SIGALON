@@ -27,9 +27,9 @@
                 >
                     <!-- Panel Info Depot (Kiri) -->
                     <div class="flex w-full flex-col justify-between border-b border-line bg-surface-low p-6 md:w-5/12 md:border-b-0 md:border-r md:p-8">
-                        <div class="flex flex-col gap-6">
+                        <div class="flex flex-col gap-5">
                             <div class="flex items-center gap-3">
-                                <div class="flex size-10 items-center justify-center rounded-xl bg-primary text-white">
+                                <div class="flex size-10 items-center justify-center rounded-xl bg-primary text-white shadow-xs">
                                     <x-app-logo-icon class="size-6" />
                                 </div>
                                 <div>
@@ -38,35 +38,60 @@
                                 </div>
                             </div>
 
-                            <div class="flex flex-col gap-4">
+                            {{-- Foto Depot Referensi Desain --}}
+                            <div class="relative overflow-hidden rounded-xl border border-line bg-white shadow-2xs">
+                                <img
+                                    src="{{ asset('images/depot-refill.jpg') }}"
+                                    alt="Depot Air Minum CV. Aufa"
+                                    class="h-36 w-full object-cover"
+                                    loading="eager"
+                                />
+                                <div class="absolute inset-0 bg-gradient-to-t from-ink/70 via-transparent to-transparent"></div>
+                                <div class="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-0.5 text-[11px] font-semibold text-ink shadow-xs backdrop-blur-xs">
+                                    <span class="size-1.5 rounded-full bg-success animate-pulse"></span>
+                                    <span>{{ __('Sentra Air Minum Higienis') }}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-3.5">
                                 <p class="text-xs font-semibold uppercase tracking-wider text-primary">{{ __('Kemudahan Akun SIGALON') }}</p>
 
                                 <div class="flex items-start gap-3">
-                                    <div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary font-bold text-xs">
+                                    <div class="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary font-bold text-xs">
                                         COD
                                     </div>
                                     <div class="text-xs text-muted">
-                                        <strong class="text-ink font-semibold block text-sm">{{ __('Pesan Antar COD (Rp7.000)') }}</strong>
+                                        <strong class="text-ink font-semibold block text-xs">{{ __('Pesan Antar COD (Rp7.000)') }}</strong>
                                         {{ __('Kurir resmi CV. Aufa mengantar langsung ke pintu Anda, bayar saat galon tiba.') }}
                                     </div>
                                 </div>
 
                                 <div class="flex items-start gap-3">
-                                    <div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
-                                        <flux:icon.check-circle class="size-5" />
+                                    <div class="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                                        <flux:icon.check-circle class="size-4" />
                                     </div>
                                     <div class="text-xs text-muted">
-                                        <strong class="text-ink font-semibold block text-sm">{{ __('Kualitas Air Terjamin') }}</strong>
-                                        {{ __('Diproses dengan standar operasional ketat untuk higienitas dan kesegaran air.') }}
+                                        <strong class="text-ink font-semibold block text-xs">{{ __('Kualitas Air Terjamin') }}</strong>
+                                        {{ __('Diproses dengan standar higienis ketat untuk kesegaran air keluarga Anda.') }}
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start gap-3">
+                                    <div class="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                                        <flux:icon.map-pin class="size-4" />
+                                    </div>
+                                    <div class="text-xs text-muted">
+                                        <strong class="text-ink font-semibold block text-xs">{{ __('Jaringan Depot Terdekat') }}</strong>
+                                        {{ __('Diproses cepat oleh cabang terdekat di wilayah Kota Padang.') }}
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-8 rounded-xl bg-white p-4 border border-line text-xs text-muted">
+                        <div class="mt-6 rounded-xl bg-white p-3.5 border border-line text-xs text-muted shadow-2xs">
                             <p class="flex items-center gap-2">
                                 <flux:icon.shield-check class="size-4 text-primary shrink-0" />
-                                <span>{{ __('Data nomor WhatsApp Anda aman & hanya digunakan untuk koordinasi pengantaran pesanan.') }}</span>
+                                <span>{{ __('Data nomor WhatsApp Anda aman & hanya dipakai untuk koordinasi pengantaran resmi depot.') }}</span>
                             </p>
                         </div>
                     </div>
