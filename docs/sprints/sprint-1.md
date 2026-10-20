@@ -163,6 +163,59 @@ Tambahkan catatan dengan format:
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):** `feat(US-02): implement customer authentication via phone and google oauth`
 
+### US-03 — Landing page dan peta cabang
+- **Tanggal:** 20 Oktober 2026
+- **Story/Task:** US-03, branch `feature/US-03-landing-page-dan-peta-cabang`
+- **Dikerjakan oleh:** Shalwa (PIC) dengan bantuan AI (Antigravity)
+- **Keputusan PO yang dipakai (20 Okt 2026):**
+  - Menggunakan 2 cabang nyata di Kota Padang: Cabang Dadok Tunggul Hitam (`Jl. Utama Dadok Tunggul Hitam, Padang`) dan Cabang Siteba (`Jl. Siteba, Padang`).
+  - `CabangSeeder` dibuat idempotent (`updateOrCreate` dengan kunci nama cabang) dan tidak dijalankan otomatis di `DatabaseSeeder`. Dapat dijalankan manual: `php artisan db:seed --class=CabangSeeder`.
+  - Koordinat latitude/longitude di `CabangSeeder` (-0.8715, 100.3640 untuk Dadok Tunggul Hitam dan -0.8980, 100.3680 untuk Siteba) adalah perkiraan untuk pengujian, butuh verifikasi PO via Google Maps/OSM sebelum dianggap final.
+  - Alamat cabang ditulis sesuai data PO tanpa menambah detail fiktif.
+  - Peta Leaflet + OpenStreetMap membaca seluruh cabang aktif (`is_active = true` dan memiliki koordinat) secara dinamis tanpa pembatasan jumlah di kode; `fitBounds` otomatis menyesuaikan sebaran marker.
+  - Harga resmi PRD §6: Walk-in Rp6.000/galon dan COD Rp7.000/galon. Kartu galon kosong baru hanya tampil jika `sigalon.harga.galon_baru` dikonfigurasi Super Admin (tidak di-hardcode). Tampilan katalog disajikan dalam 1 baris (3 kolom di desktop).
+  - Foto stasiun pengisian depot modern (`public/images/depot-refill.jpg`) ditambahkan ke kolom kanan Hero section sesuai referensi visual `01-pelanggan-landing.jpg`.
+  - Revisi PO Active State Navbar:
+    - Navbar menandai seksi aktif (Beranda, Layanan & Harga, Cara Pesan, Lokasi Cabang) dengan warna primer teal (`text-primary`), ketebalan `font-semibold`, garis bawah tipis (`border-b-2 border-primary`), dan atribut aksesibilitas `aria-current="page"` (kontras WCAG AA terpenuhi).
+    - Berubah saat menu diklik (state terkunci selama animasi smooth-scroll untuk mencegah flicker) dan saat scroll manual (scroll-spy ringan menggunakan `IntersectionObserver`).
+    - Halaman dibuka di posisi atas mengaktifkan "Beranda"; jika dibuka dengan hash (misal `/#lokasi-cabang`), seksi terkait langsung aktif.
+    - Seksi halaman diberi offset anchor `scroll-mt-20` dan `scroll-pt-20` sehingga konten tidak tertutup sticky navbar saat dinavigasi.
+    - Jika `<x-customer-navbar />` digunakan di halaman non-landing page, script keluar dengan aman tanpa error dan mereset penanda aktif anchor.
+  - Tautan WhatsApp mengarah ke `wa.me` nomor admin dengan pesan pembuka terisi.
+  - `LandingPageTest` tidak bergantung pada seeder nyata (menggunakan factory dan data uji sendiri, tanpa hardcode jumlah cabang).
+- **Perubahan:**
+  - Controller `app/Http/Controllers/LandingPageController.php` (menyiapkan data cabang aktif, harga resmi, dan tautan WhatsApp).
+  - Seeder `database/seeders/CabangSeeder.php` (idempotent, 2 cabang nyata dengan koordinat perkiraan).
+  - Konfigurasi `config/sigalon.php` (menambahkan konfigurasi tarif harga).
+  - Rute `routes/web.php` (menghubungkan `/` ke `LandingPageController`).
+  - View `resources/views/welcome.blade.php` (merombak landing page dengan tema Aqua Professional, seksi harga, alur pemesanan 3 langkah, peta Leaflet.js dengan atribusi OpenStreetMap, foto hero depot, offset `scroll-mt-20`, dan isolasi layer peta `isolate z-0`).
+  - Komponen `resources/views/components/customer-navbar.blade.php` (navigasi anchor seksi landing page dengan active state vanilla JS, scroll-spy IntersectionObserver, aksesibilitas `aria-current="page"`, CTA Pesan Air Galon, dan status sesi).
+  - Pengujian `tests/Feature/LandingPageTest.php` (16 skenario tes komprehensif untuk seluruh AC dan active state navbar).
+- **Acceptance criteria yang lulus (diuji otomatis):**
+  - AC 3.1: Halaman landing page dapat diakses publik dengan layout Aqua Professional responsif dan foto hero depot yang selaras dengan panduan visual.
+  - AC 3.2: Transparansi harga Walk-in Rp6.000 dan COD Rp7.000 tertera jelas. Kartu galon kosong baru hanya muncul jika dikonfigurasi dan tersusun rapi 1 baris di desktop.
+  - AC 3.3: Peta Leaflet interaktif menampilkan marker cabang aktif dengan popup nama dan alamat, lengkap dengan atribusi wajib OpenStreetMap. Peta terisolasi secara stacking context sehingga tidak menutupi navbar saat scroll.
+  - AC 3.4: Daftar kartu cabang terintegrasi dengan aksi pemusatan peta (pan/zoom) ke marker cabang.
+  - AC 3.5: Seksi 3 langkah pemesanan dan tautan WhatsApp admin `wa.me` dengan pesan terisi berfungsi.
+  - AC 3.6: Pelanggan login dan staf dapat mengakses landing page tanpa terhalang middleware keamanan; navbar menampilkan informasi sesi yang tepat.
+  - AC 3.7 (Revisi PO): Active state navbar berfungsi presisi di desktop & mobile, scroll-spy via IntersectionObserver aktif, offset sticky navbar tidak memotong judul seksi, dan aksesibilitas `aria-current="page"` terpasang.
+  - Seeder `CabangSeeder` teruji idempotent saat dijalankan berulang.
+- **Tes dan hasil:**
+  - `vendor/bin/pint`: Lulus tanpa pelanggaran gaya kode.
+  - `vendor/bin/phpstan analyse`: 0 errors.
+  - `composer test`: 90/90 tes lulus (302 assertions, durasi ~6.8s), mencakup 74 tes lama US-01 & US-02 dan 16 tes US-03.
+  - `npm run build`: Berhasil tanpa error (asset Vite terkompilasi bersih).
+  - Pengujian visual browser: Terverifikasi langsung di browser peramban (desktop dan mobile menu, klik anchor smooth-scroll, dan scroll-spy aktif).
+- **Catatan untuk PIC story berikutnya (US-04 / Dashboard Super Admin):**
+  - Model `Cabang` telah siap dan memiliki data 2 cabang nyata via `CabangSeeder`.
+  - Jika memerlukan data cabang di database lokal saat pengembangan, jalankan `php artisan db:seed --class=CabangSeeder`.
+- **Yang belum selesai / blocker:**
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Koordinat latitude/longitude di `CabangSeeder` masih perkiraan dan butuh verifikasi PO via Google Maps/OSM.
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):** `feat(US-03): implement navbar active state with intersection observer scroll-spy and anchor clearance`
+
 ## Keputusan sebelum mengunci backlog
 1. Konfirmasi daftar US-01 sampai US-07 masih menjadi scope Sprint 1.
 2. Tentukan apakah US-02 mencakup login Google saja atau Google + nomor HP/password.

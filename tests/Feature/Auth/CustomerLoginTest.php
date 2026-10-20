@@ -16,6 +16,8 @@ class CustomerLoginTest extends TestCase
 
     public function test_customer_login_screen_can_be_rendered(): void
     {
+        config(['services.admin_whatsapp_number' => '6281200000000']);
+
         $response = $this->get(route('customer.login'));
 
         $response->assertOk()

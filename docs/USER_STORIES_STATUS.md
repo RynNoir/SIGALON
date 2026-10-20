@@ -7,7 +7,7 @@
 |---|---|---|---|---|---|
 | US-01 | Login staf web dengan role | Reyhan | REVIEW | `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 50/50 (19 Okt 2026). Tes: `tests/Feature/Auth/StaffWebAccessTest.php`, `tests/Unit/RoleTest.php`. Smoke test HTTP lulus | Reviewer belum ditunjuk (DoD no. 8). Cek visual di browser belum dilakukan. Branch `feature/US-01-login-staf-web-with-role` |
 | US-02 | Login pelanggan | Velisa | REVIEW | Pint lulus, PHPStan 0 error, PHPUnit 74/74 (20 Okt 2026). Tes: `tests/Feature/Auth/CustomerLoginTest.php`, `tests/Feature/Auth/CustomerRegistrationTest.php`, `tests/Feature/Auth/CustomerAccessTest.php`, `tests/Feature/Auth/GoogleAuthTest.php`. | Reviewer belum ditunjuk (DoD no. 8). Kredensial asli Google OAuth & nomor WA admin asli menyusul dari tim. Branch `feature/US-02-login-pelanggan` |
-| US-03 | Landing page dan peta cabang | Shalwa | TODO — konfirmasi | Belum dicatat | Koordinat/nama/alamat cabang |
+| US-03 | Landing page dan peta cabang | Shalwa | REVIEW | Pint lulus, PHPStan 0 error, PHPUnit 87/87 (20 Okt 2026). Tes: `tests/Feature/LandingPageTest.php`. Build Vite lulus | Reviewer belum ditunjuk (DoD no. 8). Koordinat Cabang Dadok Tunggul Hitam & Siteba di `CabangSeeder` adalah perkiraan, butuh verifikasi PO via Maps/OSM. Branch `feature/US-03-landing-page-dan-peta-cabang` |
 | US-04 | Dashboard Super Admin | Reyhan | TODO — konfirmasi | Belum dicatat | Sumber data transaksi dan definisi pendapatan |
 | US-05 | Dashboard Admin Cabang | Velisa | TODO — konfirmasi | Belum dicatat | Isolasi data per cabang |
 | US-06 | Pengelolaan Admin Cabang | Shalwa | TODO — konfirmasi | Belum dicatat | Hapus vs nonaktifkan akun |

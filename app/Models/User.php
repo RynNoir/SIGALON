@@ -20,6 +20,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $email
  * @property string|null $phone
  * @property string|null $google_id
+ * @property string|null $google_avatar
  * @property CarbonImmutable|null $email_verified_at
  * @property string|null $password
  * @property Role $role
@@ -32,7 +33,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['name', 'email', 'phone', 'google_id', 'password'])]
+#[Fillable(['name', 'email', 'phone', 'google_id', 'google_avatar', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -92,5 +93,21 @@ class User extends Authenticatable
         return Str::length($initials) > 1
             ? Str::substr($initials, 0, 1).Str::substr($initials, -1)
             : $initials;
+    }
+
+    /**
+     * Huruf pertama nama untuk avatar inisial.
+     */
+    public function avatarInitial(): string
+    {
+        return Str::upper(Str::substr(trim($this->name), 0, 1)) ?: '?';
+    }
+
+    /**
+     * URL foto profil Google, atau null jika login bukan via Google.
+     */
+    public function googleAvatarUrl(): ?string
+    {
+        return $this->google_avatar ?: null;
     }
 }

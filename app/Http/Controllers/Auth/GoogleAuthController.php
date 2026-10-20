@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\AbstractProvider;
+use Laravel\Socialite\Two\InvalidStateException;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 use Throwable;
 
@@ -31,6 +33,15 @@ class GoogleAuthController extends Controller
         try {
             /** @var \Laravel\Socialite\Two\User $googleUser */
             $googleUser = Socialite::driver('google')->user();
+        } catch (InvalidStateException) {
+            $driver = Socialite::driver('google');
+
+            if (! $driver instanceof AbstractProvider) {
+                throw new InvalidStateException('Driver does not support stateless OAuth.');
+            }
+
+            /** @var \Laravel\Socialite\Two\User $googleUser */
+            $googleUser = $driver->stateless()->user();
         } catch (Throwable $e) {
             Log::error('Google OAuth callback error: '.$e->getMessage(), [
                 'exception' => $e,
@@ -60,6 +71,13 @@ class GoogleAuthController extends Controller
                 ]);
             }
 
+            // Perbarui foto profil Google jika berubah
+            $avatarUrl = $googleUser->getAvatar();
+            if ($avatarUrl && $user->google_avatar !== $avatarUrl) {
+                $user->google_avatar = $avatarUrl;
+                $user->save();
+            }
+
             Auth::guard('web')->login($user);
             $request->session()->regenerate();
 
@@ -78,6 +96,7 @@ class GoogleAuthController extends Controller
         $newUser->name = $googleUser->getName() ?: 'Pelanggan';
         $newUser->email = $email;
         $newUser->google_id = $googleId;
+        $newUser->google_avatar = $googleUser->getAvatar();
         $newUser->role = Role::Pelanggan;
         $newUser->is_active = true;
         $newUser->cabang_id = null;
