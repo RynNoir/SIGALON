@@ -17,9 +17,11 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 /**
  * @property int $id
  * @property string $name
- * @property string $email
+ * @property string|null $email
+ * @property string|null $phone
+ * @property string|null $google_id
  * @property CarbonImmutable|null $email_verified_at
- * @property string $password
+ * @property string|null $password
  * @property Role $role
  * @property int|null $cabang_id
  * @property bool $is_active
@@ -30,7 +32,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'phone', 'google_id', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -63,6 +65,11 @@ class User extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->role === Role::SuperAdmin;
+    }
+
+    public function isPelanggan(): bool
+    {
+        return $this->role === Role::Pelanggan;
     }
 
     /**

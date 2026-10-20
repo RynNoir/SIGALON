@@ -26,8 +26,13 @@ class RoleTest extends TestCase
     public function test_roles_match_prd_values(): void
     {
         $this->assertSame(
-            ['super_admin', 'admin_cabang', 'kasir', 'kurir'],
+            ['super_admin', 'admin_cabang', 'kasir', 'kurir', 'pelanggan'],
             array_column(Role::cases(), 'value'),
+        );
+
+        $this->assertSame(
+            ['super_admin', 'admin_cabang', 'kasir', 'kurir'],
+            array_column(Role::staffCases(), 'value'),
         );
     }
 }
