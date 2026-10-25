@@ -32,6 +32,28 @@
                 >
                     {{ __('Dasbor') }}
                 </flux:sidebar.item>
+
+                @if ($currentUser->isSuperAdmin())
+                    <flux:sidebar.item
+                        icon="building-office-2"
+                        :href="route('admin.cabang.index')"
+                        :current="request()->routeIs('admin.cabang.*')"
+                        class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
+                        wire:navigate
+                    >
+                        {{ __('Kelola Cabang') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item
+                        icon="users"
+                        :href="route('admin.admin-cabang.index')"
+                        :current="request()->routeIs('admin.admin-cabang.*')"
+                        class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
+                        wire:navigate
+                    >
+                        {{ __('Admin Cabang') }}
+                    </flux:sidebar.item>
+                @endif
             </flux:sidebar.nav>
 
             <flux:spacer />
