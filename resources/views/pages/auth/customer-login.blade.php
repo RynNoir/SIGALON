@@ -101,7 +101,7 @@
                         <div class="flex flex-col gap-1 mb-6">
                             <span class="text-xs font-semibold uppercase tracking-wider text-primary">{{ __('Portal Pelanggan Resmi') }}</span>
                             <flux:heading size="xl" level="1" class="text-ink!">{{ __('Selamat Datang di SIGALON') }}</flux:heading>
-                            <flux:text class="text-muted!">{{ __('Akses pemesanan air minum isi ulang CV. Aufa Tirta Abadi.') }}</flux:text>
+                            <flux:text class="text-muted!">{{ __('Akses pemesanan air minum isi ulang CV. Aufa.') }}</flux:text>
                         </div>
 
                         <!-- Tab Navigasi Masuk / Daftar -->
@@ -292,7 +292,7 @@
             </main>
 
             <footer class="w-full border-t border-line bg-white py-4 text-center text-xs text-muted">
-                &copy; {{ date('Y') }} {{ config('app.name', 'SIGALON') }} &middot; CV. Aufa Tirta Abadi
+                &copy; {{ date('Y') }} {{ config('app.name', 'SIGALON') }} &middot; CV. Aufa
             </footer>
         </div>
 
