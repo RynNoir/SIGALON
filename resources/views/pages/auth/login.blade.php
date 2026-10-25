@@ -53,7 +53,7 @@
 
         <div class="flex flex-col gap-1 rounded-xl bg-surface-low p-4 text-sm text-muted">
             <p>{{ __('Lupa kata sandi? Hubungi Admin Cabang atau Super Admin untuk mengatur ulang.') }}</p>
-            <p>{{ __('Kasir dan Kurir menggunakan aplikasi Android SIGALON.') }}</p>
+            <p>{{ __('Kurir menggunakan aplikasi Android SIGALON.') }}</p>
         </div>
     </div>
 </x-layouts::auth>

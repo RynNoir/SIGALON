@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\Role;
 use App\Models\Cabang;
+use App\Models\Pelanggan;
 use App\Models\User;
 use Database\Seeders\CabangSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -152,19 +153,29 @@ class LandingPageTest extends TestCase
 
     public function test_authenticated_customer_can_access_landing_page_and_sees_profile_in_navbar(): void
     {
-        $customer = User::factory()->create([
-            'name' => 'Budi Santoso',
-            'role' => Role::Pelanggan,
-            'phone' => '081299998888',
-            'is_active' => true,
-        ]);
+        $customer = Pelanggan::factory()->create(['nama' => 'Budi Santoso']);
 
-        $response = $this->actingAs($customer)->get(route('home'));
+        $response = $this->actingAs($customer, 'pelanggan')->get(route('home'));
 
         $response->assertOk();
         $response->assertSee('Budi Santoso');
         $response->assertSee('data-test="customer-logout-button"', false);
         $response->assertDontSee('data-test="customer-login-link"', false);
+    }
+
+    public function test_branch_name_and_address_are_escaped_on_landing_page(): void
+    {
+        Cabang::factory()->create([
+            'nama' => "Cabang <script>alert('xss')</script>",
+            'alamat' => 'Jl. <img src=x onerror=alert(1)>',
+        ]);
+
+        $response = $this->get(route('home'));
+
+        $response->assertOk();
+        $response->assertSee('&lt;script&gt;', false);
+        $response->assertDontSee("<script>alert('xss')</script>", false);
+        $response->assertDontSee('<img src=x onerror=alert(1)>', false);
     }
 
     public function test_authenticated_staff_sees_staff_dashboard_link_in_navbar(): void

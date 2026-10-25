@@ -22,10 +22,12 @@ return [
     | Tarif dan Harga Layanan
     |--------------------------------------------------------------------------
     |
-    | Harga air isi ulang resmi (PRD §6):
+    | Satu-satunya sumber harga aplikasi (PRD §6): tidak ada tabel atau menu harga.
+    | Mengubah harga berarti mengubah file ini (atau .env) lalu deploy ulang.
     | - Walk-in: Rp6.000 / galon
-    | - COD / Antar-Jemput: Rp7.000 / galon
-    | - Galon kosong baru: dikonfigurasi Super Admin (nullable jika belum diset)
+    | - COD / Antar-Jemput dan canvassing: Rp7.000 / galon
+    | - Galon kosong baru: nilai sementara sampai dikonfirmasi mitra; HARGA_GALON_BARU
+    |   kosong memakai 45000, bernilai 0 menyembunyikan kartu galon baru di landing page.
     |
     */
     'harga' => [

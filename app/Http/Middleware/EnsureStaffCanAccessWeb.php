@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Mengeluarkan sesi staf yang tidak lagi berhak memakai website admin
- * (dinonaktifkan, peran Kasir/Kurir, atau Admin Cabang tanpa cabang).
+ * Menjaga batas website staf:
+ * - sesi staf yang tidak lagi berhak (nonaktif, Admin Cabang/Kasir tanpa cabang) dikeluarkan ke halaman masuk;
+ * - sesi Kurir dikeluarkan ke halaman akses ditolak (Kurir hanya memakai aplikasi Android);
+ * - pelanggan (guard `pelanggan`) yang membuka area staf mendapat 403.
  */
 class EnsureStaffCanAccessWeb
 {
@@ -21,35 +23,46 @@ class EnsureStaffCanAccessWeb
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $user = Auth::guard('web')->user();
+        $staff = Auth::guard('web')->user();
 
-        if ($user instanceof User) {
-            if ($user->isPelanggan()) {
-                if ($request->is('login')) {
-                    return redirect()->route('home');
-                }
+        if ($staff instanceof User && ! $staff->canAccessStaffWeb()) {
+            $wrongRole = ! $staff->role->canAccessWeb();
 
-                if (! $this->isCustomerPage($request)) {
-                    abort(403, __('Akses ditolak. Pelanggan tidak memiliki akses ke area staf.'));
-                }
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
-                return $next($request);
+            return $wrongRole
+                ? redirect()->route('akses-ditolak')
+                : redirect()->route('login')->with('status', __('Sesi Anda telah berakhir. Silakan masuk kembali.'));
+        }
+
+        if (! $staff && Auth::guard('pelanggan')->check()) {
+            if ($request->routeIs('login')) {
+                return redirect()->route('home');
             }
 
-            if (! $user->canAccessStaffWeb()) {
-                Auth::guard('web')->logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-
-                return redirect()->route('login')->with('status', __('Sesi Anda telah berakhir. Silakan masuk kembali.'));
+            if ($this->isStaffArea($request)) {
+                abort(403);
             }
         }
 
         return $next($request);
     }
 
-    private function isCustomerPage(Request $request): bool
+    /**
+     * Rute staf adalah rute yang dilindungi middleware `auth` (guard web).
+     */
+    private function isStaffArea(Request $request): bool
     {
-        return $request->is('/', 'masuk*', 'daftar*', 'keluar*', 'auth/google*', 'livewire/*');
+        $middleware = $request->route()?->gatherMiddleware() ?? [];
+
+        foreach ($middleware as $name) {
+            if (is_string($name) && ($name === 'auth' || $name === 'auth:web')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

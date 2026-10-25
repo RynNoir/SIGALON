@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Pelanggan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -11,8 +12,6 @@ class CustomerLoginTest extends TestCase
     use RefreshDatabase;
 
     private const PESAN_UMUM = 'Nomor HP atau kata sandi salah.';
-
-    private const PESAN_STAF = 'Akun staf tidak dapat masuk di sini. Silakan masuk melalui portal staf di /login.';
 
     public function test_customer_login_screen_can_be_rendered(): void
     {
@@ -29,17 +28,15 @@ class CustomerLoginTest extends TestCase
 
     public function test_authenticated_customer_visiting_login_page_is_redirected_to_home(): void
     {
-        $customer = User::factory()->pelanggan()->create();
-
-        $this->actingAs($customer)
+        $this->actingAs(Pelanggan::factory()->create(), 'pelanggan')
             ->get(route('customer.login'))
             ->assertRedirect(route('home'));
     }
 
     public function test_customer_can_login_with_valid_phone_and_password(): void
     {
-        $customer = User::factory()->pelanggan()->create([
-            'phone' => '6281234567890',
+        $pelanggan = Pelanggan::factory()->create([
+            'no_hp' => '6281234567890',
             'password' => 'password123',
         ]);
 
@@ -51,29 +48,29 @@ class CustomerLoginTest extends TestCase
         $response->assertSessionHasNoErrors()
             ->assertRedirect(route('home'));
 
-        $this->assertAuthenticatedAs($customer);
+        $this->assertAuthenticatedAs($pelanggan, 'pelanggan');
+        $this->assertGuest('web');
     }
 
     public function test_customer_can_login_with_different_phone_formats(): void
     {
-        $customer = User::factory()->pelanggan()->create([
-            'phone' => '6281234567890',
+        $pelanggan = Pelanggan::factory()->create([
+            'no_hp' => '6281234567890',
             'password' => 'password123',
         ]);
 
-        // Format +62
         $this->post(route('customer.login.store'), [
             'phone' => '+6281234567890',
             'password' => 'password123',
         ])->assertRedirect(route('home'));
 
-        $this->assertAuthenticatedAs($customer);
+        $this->assertAuthenticatedAs($pelanggan, 'pelanggan');
     }
 
     public function test_wrong_password_gets_generic_error_message(): void
     {
-        $customer = User::factory()->pelanggan()->create([
-            'phone' => '6281234567890',
+        Pelanggan::factory()->create([
+            'no_hp' => '6281234567890',
             'password' => 'password123',
         ]);
 
@@ -83,7 +80,7 @@ class CustomerLoginTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['phone' => self::PESAN_UMUM]);
-        $this->assertGuest();
+        $this->assertGuest('pelanggan');
     }
 
     public function test_unknown_phone_gets_same_generic_error_message(): void
@@ -94,45 +91,38 @@ class CustomerLoginTest extends TestCase
         ]);
 
         $response->assertSessionHasErrors(['phone' => self::PESAN_UMUM]);
-        $this->assertGuest();
+        $this->assertGuest('pelanggan');
     }
 
-    public function test_inactive_customer_cannot_log_in(): void
+    public function test_google_account_without_password_cannot_log_in_with_phone_form(): void
     {
-        $customer = User::factory()->pelanggan()->inactive()->create([
-            'phone' => '6281234567890',
-            'password' => 'password123',
-        ]);
+        Pelanggan::factory()->google()->create(['no_hp' => '6281234567890']);
 
-        $response = $this->post(route('customer.login.store'), [
+        $this->post(route('customer.login.store'), [
             'phone' => '081234567890',
             'password' => 'password123',
-        ]);
+        ])->assertSessionHasErrors(['phone' => self::PESAN_UMUM]);
 
-        $response->assertSessionHasErrors(['phone' => self::PESAN_UMUM]);
-        $this->assertGuest();
+        $this->assertGuest('pelanggan');
     }
 
-    public function test_staff_logging_in_via_customer_form_is_rejected(): void
+    public function test_staff_account_cannot_log_in_with_customer_form(): void
     {
-        $staff = User::factory()->adminCabang()->create([
-            'phone' => '6281234567890',
-            'password' => 'password123',
-        ]);
+        $staff = User::factory()->adminCabang()->create();
 
-        $response = $this->post(route('customer.login.store'), [
-            'phone' => '081234567890',
-            'password' => 'password123',
-        ]);
+        $this->post(route('customer.login.store'), [
+            'phone' => $staff->email,
+            'password' => 'password',
+        ])->assertSessionHasErrors(['phone' => self::PESAN_UMUM]);
 
-        $response->assertSessionHasErrors(['phone' => self::PESAN_STAF]);
-        $this->assertGuest();
+        $this->assertGuest('pelanggan');
+        $this->assertGuest('web');
     }
 
     public function test_customer_login_is_throttled_after_five_failed_attempts(): void
     {
-        User::factory()->pelanggan()->create([
-            'phone' => '6281234567890',
+        Pelanggan::factory()->create([
+            'no_hp' => '6281234567890',
             'password' => 'password123',
         ]);
 
@@ -148,17 +138,15 @@ class CustomerLoginTest extends TestCase
             'password' => 'password123',
         ])->assertStatus(429);
 
-        $this->assertGuest();
+        $this->assertGuest('pelanggan');
     }
 
     public function test_customer_can_log_out(): void
     {
-        $customer = User::factory()->pelanggan()->create();
-
-        $this->actingAs($customer)
+        $this->actingAs(Pelanggan::factory()->create(), 'pelanggan')
             ->post(route('customer.logout'))
             ->assertRedirect(route('home'));
 
-        $this->assertGuest();
+        $this->assertGuest('pelanggan');
     }
 }
