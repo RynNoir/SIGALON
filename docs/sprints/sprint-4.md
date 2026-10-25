@@ -72,6 +72,14 @@ Bagian ini bukan isi J-01.
 - **Flutter SDK belum terpasang** di komputer pengembang yang dipakai sejauh ini. Siapkan sebelum task no. 1.
 - **Token dicabut saat akun dinonaktifkan.** PRD §7.J mewajibkannya, jadi US-23 dan US-22 perlu tes untuk kasus ini.
 
+## Catatan untuk PIC story berikutnya
+Diperbarui 25 Oktober 2026 dari hasil Sprint 1.
+
+- **Akun uji:** `kasir@sigalon.test` dan `kurir@sigalon.test` dari `php artisan db:seed` bisa dipakai untuk login Android setelah API US-22 tersedia. Kurir sengaja ditolak di website, jadi uji login Kurir hanya lewat aplikasi.
+- **Status dan transisi** mengikuti enum `StatusTransaksi` dan service transisi dari US-12. Jangan menulis aturan transisi kedua di endpoint.
+- **Harga** dihitung di backend dari `config/sigalon.php`. Aplikasi hanya mengirim jenis item, jumlah, dan metode bayar (AC US-24: total dari backend).
+- **Batas cabang:** setiap endpoint harus memakai `cabang_id` milik akun yang login, bukan nilai yang dikirim aplikasi.
+
 ## Definition of Done
 Mengikuti PRD v1.2 §14.
 

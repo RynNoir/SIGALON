@@ -67,7 +67,7 @@ Bagian ini bukan isi J-01. Ini catatan agar AI agent dan developer tidak salah m
 - **Task 4 menyebut tabel PELANGGAN.** Sudah sesuai sejak 25 Oktober: pelanggan pindah dari `users` ke tabel `pelanggan` dengan guard `pelanggan`.
 - **US-01 memasukkan Kasir sebagai pengguna website.** Sudah sesuai sejak 25 Oktober: Kasir bisa masuk, dan Kurir diarahkan ke halaman akses ditolak.
 - **US-02 di J-01 hanya mencakup Google.** Implementasi juga sudah membuat registrasi/login nomor HP, yang secara resmi adalah US-08 (Sprint 2).
-- **Pemetaan nama ERD ke tabel fisik:** CABANG → `cabang` (`nama_cabang` = `nama`, ditambah `is_active`); USER_STAFF → `users` (`nama` = `name`, `aktif` = `is_active`); PELANGGAN → `pelanggan` (ditambah `google_avatar` dan `remember_token`). TRANSAKSI masih memakai kolom versi fondasi dan harus diselaraskan dengan ERD sebelum US-04/US-05 dan US-09.
+- **Pemetaan nama ERD ke tabel fisik:** CABANG → `cabang` (`nama_cabang` = `nama`, ditambah `is_active`); USER_STAFF → `users` (`nama` = `name`, `aktif` = `is_active`); PELANGGAN → `pelanggan` (ditambah `google_avatar` dan `remember_token`). TRANSAKSI → `transaksi` sesuai ERD sejak US-04 (25 Oktober; `total_harga` disimpan sebagai bilangan bulat Rupiah).
 
 ## Referensi desain per story
 Baca `docs/design/README.md` sebelum mengerjakan UI. Gambar hanya untuk gaya visual. Ikuti bagian "Jangan ambil" dan tabel konflik di sana.
@@ -88,6 +88,31 @@ Ringkasan dari PRD v1.2 §6 dan §16. Bila berbeda, PRD yang berlaku.
 - Satu transaksi berisi satu jenis item.
 - Peminjaman galon dan WhatsApp API otomatis di luar scope; WhatsApp hanya tautan `wa.me`.
 - Pilot 2 cabang; rancangan mendukung 13 cabang.
+
+## Catatan untuk PIC story berikutnya
+Diperbarui 25 Oktober 2026 setelah US-01–US-04. Baca sebelum mulai coding story Sprint 1 yang tersisa.
+
+**Umum**
+- **Akun uji lokal:** jalankan `php artisan migrate` lalu `php artisan db:seed`. Seeder membuat 2 cabang pilot dan 4 akun: `superadmin@sigalon.test`, `admin.cabang@sigalon.test`, `kasir@sigalon.test`, `kurir@sigalon.test` (staf cabang di cabang pertama). Password dari `SEED_DEFAULT_PASSWORD` di `.env`; jika kosong, password acak ditampilkan sekali. Akun ini tidak dibuat di production.
+- **Akun staf** ada di `users` (guard `web`); **akun pelanggan** di `pelanggan` (guard `pelanggan`). Jangan mencampur keduanya.
+- **Batas akses website staf:** Super Admin, Admin Cabang, dan Kasir boleh masuk; Kurir diarahkan ke `/akses-ditolak`. Middleware `EnsureStaffCanAccessWeb` memperlakukan semua route ber-middleware `auth` sebagai area staf.
+- **Kerangka admin:** sidebar ada di `resources/views/layouts/app/sidebar.blade.php`. Tambahkan item menu baru di sana, dan tampilkan hanya untuk peran yang berhak; pembatasan tetap wajib di backend.
+- **Warna:** pakai token Tailwind (`primary`, `primary-strong`, `deep`, `muted`, `surface`, dan seterusnya), bukan hex.
+
+**US-05 — Dashboard Admin Cabang (Velisa)**
+- Halaman dasbor sudah ada di `resources/views/pages/⚡dashboard.blade.php`. Ganti blok placeholder di cabang `@if ($this->ringkasan === null)`.
+- Pakai `Transaksi::ringkasanPerCabangDanKanal($dari, $sampai, $user->cabang_id)`. **Selalu isi `cabang_id`** untuk peran selain Super Admin.
+- Kasir juga membuka halaman ini. Tentukan bersama PO apakah Kasir melihat ringkasan yang sama dengan Admin Cabang.
+
+**US-06 — Data cabang dan akun Admin Cabang (Shalwa)**
+- Model `Cabang` memakai kolom `nama`, `alamat`, `latitude`, `longitude`, `is_active`.
+- Nama dan alamat cabang tampil di landing page dan popup peta. Popup sudah memakai `textContent`; tetap tampilkan dengan `{{ }}` di Blade.
+- Akun tidak dihapus, hanya dinonaktifkan (`is_active`). Sesi akun yang dinonaktifkan otomatis dikeluarkan oleh middleware.
+- Kolom `role` dan `cabang_id` sengaja tidak masuk `Fillable` di model `User`; isi secara eksplisit setelah validasi dan otorisasi.
+
+**US-07 — Akun Kasir dan Kurir (Nurul)**
+- Pakai pola kelola akun dari US-06. Admin Cabang hanya boleh membuat dan mengubah akun dengan `cabang_id` miliknya sendiri; periksa di backend, bukan hanya di form.
+- Factory sudah punya state `kasir()`, `kurir()`, dan `inactive()` untuk tes.
 
 ## Definition of Ready
 - [ ] Tujuan story dan aktor jelas
@@ -292,6 +317,40 @@ Tambahkan catatan dengan format:
   - Cek visual di browser (palet baru, halaman akses ditolak, popup peta) belum dilakukan.
   - Setiap anggota perlu menjalankan `php artisan migrate` dan `npm run build` setelah merge. Pelanggan yang sedang login akan keluar sekali.
   - Pelanggan nonaktif tidak lagi didukung karena ERD PELANGGAN tidak memiliki kolom aktif.
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):** lihat laporan handoff
+
+### US-04 — Dashboard Super Admin
+- **Tanggal:** 25 Oktober 2026
+- **Story/Task:** US-04 (task 8–10) + penyelarasan tabel TRANSAKSI dengan ERD, branch `feature/US-04-dashboard-super-admin`
+- **Dikerjakan oleh:** Reyhan (PIC) dengan bantuan AI (Claude Code)
+- **Keputusan yang dipakai** (rekomendasi AI di Tahap 2; PO melanjutkan tanpa koreksi):
+  - Periode ringkasan: Hari ini (default) dan Bulan ini, berdasarkan kolom `tanggal`.
+  - "Jumlah transaksi" memakai aturan yang sama dengan pendapatan (PRD §6): walk-in/COD `selesai` dan canvassing `tervalidasi`.
+  - Statistik ringkas memakai batang Tailwind tanpa library grafik baru (PRD §16 terbuka no. 5 tetap terbuka untuk US-20).
+  - Dasbor Admin Cabang dan Kasir menampilkan placeholder tanpa angka sampai US-05.
+  - `total_harga` disimpan sebagai bilangan bulat Rupiah (ERD menulis `decimal`).
+  - Penyelarasan TRANSAKSI dikerjakan di branch ini, bukan branch terpisah.
+- **Perubahan:**
+  - **TRANSAKSI:** migration `2026_10_25_170655_recreate_transaksi_table_sesuai_erd` (tabel dibuat ulang karena belum pernah diisi fitur apa pun); enum baru `StatusTransaksi`; nilai `JenisItem` menjadi `isi_ulang`/`galon_baru`; model `Transaksi` dengan relasi ERD, scope `sah()` dan `antaraTanggal()`, serta method `ringkasanPerCabangDanKanal()` yang bisa dipakai ulang US-05/US-20; `TransaksiFactory` dengan state `cod()` dan `canvassing()`.
+  - **Dasbor:** halaman Livewire `resources/views/pages/⚡dashboard.blade.php` menggantikan `resources/views/dashboard.blade.php`; route `dashboard` memakai `Route::livewire`.
+- **Acceptance criteria yang lulus (diuji otomatis di `SuperAdminDashboardTest`):**
+  - Ringkasan pendapatan dan jumlah transaksi total, per kanal, dan per cabang cocok dengan data uji.
+  - Hanya transaksi sah yang dihitung; COD `diproses`/`diantar`/`dibatalkan` dan canvassing `menunggu_verifikasi`/`ditolak` tidak dihitung.
+  - Periode Hari ini tidak memuat hari sebelumnya; Bulan ini memuat awal bulan dan tidak memuat bulan lalu.
+  - 13 cabang tampil semua.
+  - Admin Cabang dan Kasir tidak pernah menerima angka atau nama cabang lain; Kurir diarahkan ke akses ditolak.
+  - Empty state tampil saat belum ada transaksi; periode tidak valid kembali ke Hari ini; nama cabang ter-escape.
+- **Tes dan hasil:**
+  - `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 105/105 (378 assertions).
+  - `npm run build` berhasil.
+  - Query ringkasan diuji di database MariaDB terpisah (hari ini, bulan ini, filter satu cabang): hasil sesuai.
+- **Yang belum selesai / blocker:**
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Tampilan belum diperiksa manual di browser (desktop dan ponsel).
+  - Di data nyata dasbor masih kosong sampai pencatatan transaksi Sprint 2 (US-09–US-11) selesai.
+- **Catatan untuk US-05 (Velisa):** pakai `Transaksi::ringkasanPerCabangDanKanal($dari, $sampai, $user->cabang_id)` dan ganti blok placeholder di `⚡dashboard.blade.php` (cabang `@if ($this->ringkasan === null)`). Jangan pernah memanggilnya tanpa `cabang_id` untuk peran selain Super Admin.
 - **Reviewer:** belum ada
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):** lihat laporan handoff
