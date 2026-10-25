@@ -355,6 +355,51 @@ Tambahkan catatan dengan format:
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):** lihat laporan handoff
 
+### US-05 — Dashboard Admin Cabang
+- **Tanggal:** 25 Oktober 2026
+- **Story/Task:** US-05, branch `feature/US-05-dashboard-admin-cabang`
+- **Dikerjakan oleh:** Velisa (PIC) dengan bantuan AI (Antigravity)
+- **Keputusan yang dipakai (Keputusan PO 25 Okt 2026):**
+  - Opsi A disetujui: route khusus `/dashboard/cabang/{cabang}` dengan route model binding dan otorisasi server-side di `mount()` serta `hydrate()`.
+  - Admin Cabang di `/dashboard` tetap melihat placeholder dengan penambahan tombol "Buka dashboard cabang" (keputusan R2; mempertahankan teks asli yang diasserti tes US-04).
+  - Keputusan final PO/PIC: Kasir TIDAK boleh mengakses dashboard cabang. Hanya Admin Cabang (cabangnya sendiri yang aktif) dan Super Admin (cabang aktif mana pun).
+  - Kasir dan Kurir ditolak: Kasir mendapat HTTP 403 Forbidden dan tidak melihat menu Dasbor Cabang di sidebar maupun tautan di placeholder; Kurir diarahkan ke halaman `/akses-ditolak`.
+  - Pelanggan (guard `pelanggan`) yang membuka area staf ditolak (HTTP 403 Forbidden).
+  - Super Admin boleh melihat cabang mana pun yang ada dan aktif; cabang tidak ada atau nonaktif menghasilkan 404 (bukan fallback).
+  - Admin Cabang hanya boleh melihat cabang miliknya; cabang lain atau nonaktif menghasilkan 403. Jika akun dinonaktifkan di tengah sesi, interaksi Livewire berikutnya ditolak.
+- **Perubahan:**
+  - Route baru `GET /dashboard/cabang/{cabang}` (nama `dashboard.cabang`) di `routes/web.php` dalam grup middleware `['auth', 'verified']`.
+  - Halaman Livewire `resources/views/pages/⚡dashboard-cabang.blade.php`: kartu ringkasan KPI (pendapatan, transaksi, nama cabang), filter periode (Hari ini / Bulan ini), rincian pendapatan per kanal penjualan, format Rupiah tanpa desimal, dan otorisasi server-side (`authorizeCabang`) dengan properti `#[Locked] public int $cabangId`.
+  - Placeholder di `resources/views/pages/⚡dashboard.blade.php`: penambahan tombol "Buka dashboard cabang" aman khusus Admin Cabang yang memiliki cabang aktif.
+  - Sidebar di `resources/views/layouts/app/sidebar.blade.php`: item navigasi "Dasbor Cabang" hanya tampil untuk Admin Cabang dengan cabang aktif.
+  - Pengujian `tests/Feature/Dashboard/AdminCabangDashboardTest.php`: 24 skenario pengujian komprehensif.
+- **Acceptance criteria yang lulus (diuji otomatis di `AdminCabangDashboardTest`):**
+  - Admin Cabang dengan cabang aktif dapat mengakses dashboard cabangnya dan melihat tombol di placeholder.
+  - Admin Cabang tanpa cabang atau cabang nonaktif melihat pesan aman dalam Bahasa Indonesia tanpa tautan (bukan error 500).
+  - Isolasi cabang: Admin Cabang tidak dapat melihat, menerima angka, atau memanipulasi cabang lain (HTTP 403 / data terisolasi).
+  - Super Admin dapat melihat cabang aktif mana pun, dan mendapat 404 untuk cabang nonaktif atau ID tidak ada.
+  - Super Admin yang membuka cabang lalu mengganti periode tetap melihat data cabang tersebut saja.
+  - Kasir ditolak dari dashboard cabang (HTTP 403) dan tidak melihat tautan di placeholder maupun menu di sidebar.
+  - Kurir diarahkan ke `/akses-ditolak`.
+  - Pelanggan (guard `pelanggan`) ditolak (HTTP 403).
+  - Akun Admin Cabang yang dinonaktifkan setelah halaman terbuka ditolak saat mengganti periode.
+  - Filter periode (Hari ini / Bulan ini) dan empty state berfungsi semestinya.
+- **Tes dan hasil:**
+  - `php artisan test`: 132/132 tes lulus (467 assertions) tanpa regresi pada SuperAdminDashboardTest (11/11).
+  - `vendor\bin\phpstan analyse --memory-limit=1G`: 0 error.
+  - `vendor\bin\pint --test`: Lulus (76 files).
+  - `npm run build`: Berhasil tanpa error.
+- **Risiko dan batasan:**
+  - Di data nyata dasbor masih kosong sampai pencatatan transaksi Sprint 2 (US-09–US-11) selesai.
+  - Tampilan belum diperiksa manual secara visual di browser peramban.
+  - Jumlah galon belum ditampilkan di kartu ringkasan karena butuh penyesuaian query/signature `Transaksi::ringkasanPerCabangDanKanal()` dari US-04 (saat ini hanya mengembalikan kolom `jumlah` transaksi dan `pendapatan`).
+- **Catatan untuk story berikutnya (US-06 / Super Admin kelola cabang & akun Admin Cabang):**
+  - Akun Admin Cabang harus memiliki `cabang_id` aktif untuk dapat mengakses dashboard cabang.
+  - Penonaktifan akun Admin Cabang di US-06 otomatis memblokir akses ke dashboard cabang secara langsung.
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):** `feat(US-05): implement admin cabang dashboard with server-side authorization and branch isolation`
+
 ## Keputusan backlog Sprint 1
 Butir lama sudah diselesaikan lewat J-01 final dan PRD v1.2:
 1. Scope Sprint 1 adalah US-01 sampai US-07 (24 SP).

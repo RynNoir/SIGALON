@@ -19,6 +19,7 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', 'pages::dashboard')->name('dashboard');
+    Route::livewire('dashboard/cabang/{cabang}', 'pages::dashboard-cabang')->name('dashboard.cabang');
 });
 
 require __DIR__.'/settings.php';
