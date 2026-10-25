@@ -82,6 +82,17 @@ Bagian ini bukan isi J-01.
 - **US-21 butuh penanda "wajib ganti password".** ERD tidak punya kolom untuk itu, jadi cara penyimpanannya perlu disepakati sebelum coding.
 - **US-30 membuat tabel `notifications`** bawaan Laravel lewat migration. Ini sesuai PRD §8, karena tabel bawaan tidak digambar di ERD.
 
+## Catatan untuk PIC story berikutnya
+Diperbarui 25 Oktober 2026 dari hasil Sprint 1. Periksa juga catatan di `sprint-2.md`, karena Sprint 3 memakai hasilnya.
+
+- **US-13:** label status untuk linimasa pelanggan ada di `StatusTransaksi::label()`. Route pelanggan wajib memakai middleware `auth:pelanggan`, dan pelanggan hanya boleh melihat transaksi dengan `pelanggan_id` miliknya (uji akses ke pesanan pelanggan lain).
+- **US-16:** status canvassing `menunggu_verifikasi` → `tervalidasi` atau `ditolak`; `diverifikasi_oleh` diisi Kasir yang memverifikasi.
+- **US-20:** pakai `Transaksi::ringkasanPerCabangDanKanal($dari, $sampai, $cabangId)` dan scope `sah()` dari US-04. Aturan hitungnya sudah diuji di `tests/Feature/Dashboard/SuperAdminDashboardTest.php`. Grafik masih butuh keputusan library (PRD §16 no. 5); dasbor US-04 memakai batang Tailwind.
+- **US-21:** password pelanggan ada di `pelanggan.password` (cast `hashed`). Penanda "wajib ganti password" belum ada di ERD dan perlu disepakati.
+- **US-22:** `Role::canAccessWeb()` hanya untuk website. API Android butuh aturannya sendiri (hanya Kasir dan Kurir yang aktif dan punya cabang). Laravel Sanctum belum terpasang.
+- **US-30:** model `Pelanggan` dan `User` perlu trait `Notifiable`. `User` sudah memilikinya, `Pelanggan` belum.
+- **Akun uji:** `php artisan db:seed` membuat akun default per peran staf (lihat `sprint-1.md`).
+
 ## Definition of Done
 Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/feature test sebelum Done (kesepakatan no. 6).
 

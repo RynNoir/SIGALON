@@ -6,6 +6,7 @@ use App\Enums\JenisItem;
 use App\Enums\Kanal;
 use App\Enums\MetodePembayaran;
 use App\Enums\Role;
+use App\Enums\StatusTransaksi;
 use App\Models\Cabang;
 use App\Models\Transaksi;
 use App\Models\User;
@@ -49,28 +50,47 @@ class SchemaTest extends TestCase
         $this->assertSame($cabangAsal, $user->cabang_id);
     }
 
-    public function test_transaksi_stores_unit_price_and_total(): void
+    public function test_transaksi_follows_erd_columns_and_stores_total_harga(): void
     {
-        $transaksi = Transaksi::factory()->create(['jumlah' => 3]);
+        $transaksi = Transaksi::factory()->create(['jumlah_galon' => 3]);
 
         $transaksi->refresh();
-        $this->assertSame(Kanal::WalkIn, $transaksi->kanal);
-        $this->assertSame(JenisItem::AirIsiUlang, $transaksi->jenis_item);
-        $this->assertSame(MetodePembayaran::Tunai, $transaksi->metode_pembayaran);
-        $this->assertSame(6000, $transaksi->harga_satuan);
-        $this->assertSame(18000, $transaksi->total);
+        $this->assertSame(Kanal::WalkIn, $transaksi->jenis_kanal);
+        $this->assertSame(JenisItem::IsiUlang, $transaksi->jenis_item);
+        $this->assertSame(MetodePembayaran::Tunai, $transaksi->metode_bayar);
+        $this->assertSame(StatusTransaksi::Selesai, $transaksi->status);
+        $this->assertSame(18000, $transaksi->total_harga);
+        $this->assertNull($transaksi->pelanggan_id);
     }
 
-    public function test_transaksi_pencatat_is_from_the_same_cabang(): void
+    public function test_transaksi_staff_relations_are_from_the_same_cabang(): void
     {
         $walkIn = Transaksi::factory()->create();
+        $cod = Transaksi::factory()->cod()->create(['jumlah_galon' => 2]);
         $canvassing = Transaksi::factory()->canvassing()->create();
 
-        $this->assertSame($walkIn->cabang_id, $walkIn->pencatat->cabang_id);
-        $this->assertSame(Role::Kasir, $walkIn->pencatat->role);
-        $this->assertSame($canvassing->cabang_id, $canvassing->pencatat->cabang_id);
-        $this->assertSame(Role::Kurir, $canvassing->pencatat->role);
-        $this->assertSame(7000, $canvassing->harga_satuan);
+        $this->assertSame($walkIn->cabang_id, $walkIn->pencatat?->cabang_id);
+        $this->assertSame(Role::Kasir, $walkIn->pencatat?->role);
+        $this->assertSame(Role::Kurir, $cod->kurir?->role);
+        $this->assertSame(14000, $cod->total_harga);
+        $this->assertSame($canvassing->kurir_id, $canvassing->dicatat_oleh);
+        $this->assertSame($canvassing->cabang_id, $canvassing->kurir?->cabang_id);
+    }
+
+    public function test_only_finished_and_validated_transactions_are_counted(): void
+    {
+        $walkIn = Transaksi::factory()->create();
+        $codSelesai = Transaksi::factory()->cod()->create();
+        $canvassingSah = Transaksi::factory()->canvassing()->create();
+        Transaksi::factory()->cod(StatusTransaksi::Diproses)->create();
+        Transaksi::factory()->cod(StatusTransaksi::Dibatalkan)->create();
+        Transaksi::factory()->canvassing(StatusTransaksi::MenungguVerifikasi)->create();
+        Transaksi::factory()->canvassing(StatusTransaksi::Ditolak)->create();
+
+        $this->assertEqualsCanonicalizing(
+            [$walkIn->id, $codSelesai->id, $canvassingSah->id],
+            Transaksi::query()->sah()->pluck('id')->all(),
+        );
     }
 
     public function test_cabang_relations_only_return_their_own_records(): void
@@ -82,13 +102,5 @@ class SchemaTest extends TestCase
         $this->assertCount(2, $cabangA->transaksi);
         $this->assertCount(1, $cabangB->transaksi);
         $this->assertTrue($cabangA->users->every(fn (User $user) => $user->cabang_id === $cabangA->id));
-    }
-
-    public function test_belum_dibayar_state_leaves_dibayar_pada_empty(): void
-    {
-        $transaksi = Transaksi::factory()->cod()->belumDibayar()->create();
-
-        $this->assertNull($transaksi->dibayar_pada);
-        $this->assertSame(Kanal::Cod, $transaksi->kanal);
     }
 }

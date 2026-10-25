@@ -63,7 +63,7 @@ Menggantikan buku besar untuk transaksi harian — walk-in, galon baru, COD manu
 ## Dependensi dari Sprint 1
 - US-01 (Kasir boleh login website) dibutuhkan US-09, US-10, US-12, dan US-15. Sudah diperbaiki di branch `fix/sprint-1-penyesuaian-prd-v1.2` dan harus di-merge ke `main` sebelum story tersebut dimulai.
 - US-06/US-07 (akun Kasir dan Kurir) dibutuhkan untuk data uji US-09–US-12.
-- Tabel TRANSAKSI harus sesuai ERD sebelum US-09 dimulai (lihat catatan rekonsiliasi).
+- Tabel TRANSAKSI sesuai ERD dibuat di US-04 dan harus di-merge ke `main` sebelum US-09 dimulai.
 
 ## Referensi desain per story
 Baca `docs/design/README.md` lebih dulu. PRD v1.2 §11 menetapkan palet baru, jadi warna di gambar referensi tidak dipakai.
@@ -79,10 +79,33 @@ Baca `docs/design/README.md` lebih dulu. PRD v1.2 §11 menetapkan palet baru, ja
 ## Catatan rekonsiliasi J-01 dengan PRD, ERD, dan kode (25 Oktober 2026)
 Bagian ini bukan isi J-01.
 - **US-08 sebagian besar sudah dibuat di US-02.** Registrasi, login nomor HP, rate limiting, dan pesan penolakan nomor terdaftar sesuai teks J-01 sudah ada di `CustomerAuthController` (tabel `pelanggan`). Sisa pekerjaan: penolakan nomor terdaftar untuk akun Google saat melengkapi nomor HP (task 3).
-- **US-09/US-10/US-11 membutuhkan TRANSAKSI versi ERD.** Tabel `transaksi` di kode (fondasi) memakai kolom berbeda: `kanal`, `jumlah`, `harga_satuan`, `metode_pembayaran`, `dibayar_pada`, dengan nilai `air_isi_ulang`/`galon_kosong`. Kolom `status`, `tanggal`, `pelanggan_id`, `kurir_id`, `nama_pemesan`, `no_hp_pemesan`, `alamat_antar`, dan `diverifikasi_oleh` belum ada.
+- **TRANSAKSI sudah sesuai ERD (dikerjakan di US-04).** Model `App\Models\Transaksi`, enum `Kanal`, `JenisItem` (`isi_ulang`/`galon_baru`), `MetodePembayaran`, dan `StatusTransaksi` siap dipakai US-09–US-12. Scope `sah()` dan `antaraTanggal()` tersedia untuk perhitungan.
 - **US-11:** kolom `pelanggan.alamat` dan `pelanggan.no_hp` sudah ada dan kosong untuk akun Google, siap dilengkapi saat pesanan pertama.
 - **US-14 tanpa tabel pengaturan.** PRD §8 melarang tabel PENGATURAN, jadi lokasi penyimpanan gambar QR (misalnya satu file tetap di storage) perlu disepakati.
 - **Task 5 (file konfigurasi harga) sebagian sudah ada.** `config/sigalon.php` sudah berisi harga walk-in, COD, dan galon baru sesuai PRD §6; yang tersisa adalah logika hitung total dan penyimpanan transaksi.
+
+## Catatan untuk PIC story berikutnya
+Diperbarui 25 Oktober 2026 dari hasil Sprint 1 (US-01–US-04).
+
+**Umum**
+- **Akun uji lokal:** `php artisan db:seed` membuat `superadmin@sigalon.test`, `admin.cabang@sigalon.test`, `kasir@sigalon.test`, dan `kurir@sigalon.test` beserta 2 cabang pilot. Lihat bagian yang sama di `sprint-1.md`.
+- **Route pelanggan wajib memakai middleware `auth:pelanggan`, bukan `auth`.** Middleware `EnsureStaffCanAccessWeb` menganggap semua route ber-middleware `auth` sebagai area staf, sehingga pelanggan akan mendapat 403.
+- **Ambil pelanggan yang login** lewat `Auth::guard('pelanggan')->user()` (model `App\Models\Pelanggan`: `nama`, `no_hp`, `email`, `google_id`, `alamat`).
+- **Harga** hanya dari `config('sigalon.harga.walk_in' | 'cod' | 'galon_baru')`. Jangan menulis angka harga di kode, dan simpan hasil kali ke `total_harga`.
+
+**Model TRANSAKSI (siap dipakai)**
+- `App\Models\Transaksi` sesuai ERD: `jenis_kanal` (enum `Kanal`), `jenis_item` (enum `JenisItem`: `isi_ulang`/`galon_baru`), `metode_bayar` (enum `MetodePembayaran`), dan `status` (enum `StatusTransaksi`).
+- Relasi yang tersedia: `cabang`, `pelanggan`, `kurir`, `pencatat`, `verifikator`.
+- Scope `sah()` hanya mengambil transaksi yang dihitung di laporan; `antaraTanggal($dari, $sampai)` memfilter kolom `tanggal`.
+- `TransaksiFactory` punya state `cod($status)` dan `canvassing($status)` untuk tes.
+
+**Per story**
+- **US-08:** registrasi dan login nomor HP sudah ada di `CustomerAuthController`, termasuk pesan nomor terdaftar sesuai J-01. Sisa: penolakan nomor terdaftar untuk akun Google saat melengkapi nomor HP.
+- **US-09:** walk-in langsung berstatus `selesai`, `tanggal` = hari ini, `dicatat_oleh` = Kasir yang login, `cabang_id` = cabang Kasir. Galon baru hanya untuk walk-in.
+- **US-10, US-11:** COD berstatus awal `diproses`. COD manual mengisi `nama_pemesan`, `no_hp_pemesan`, `alamat_antar`; COD online juga mengisi `pelanggan_id` dan mengosongkan `dicatat_oleh` (ERD). Akun Google wajib melengkapi `no_hp` dan `alamat` pada pesanan pertama.
+- **US-12:** tabel RIWAYAT_STATUS belum ada. Simpan perubahan status dan riwayat dalam satu transaksi database. Pembatalan hanya dari `diproses` dan wajib alasan. Kurir yang dipilih harus aktif dan berasal dari cabang yang sama.
+- **US-14:** PRD melarang tabel pengaturan; sepakati lokasi file gambar QR dulu.
+- **US-15:** batasi query dengan `cabang_id` milik pengguna. Super Admin tidak termasuk peran story ini kecuali PO meminta.
 
 ## Definition of Done
 Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/feature test sebelum Done (kesepakatan no. 6).
