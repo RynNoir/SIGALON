@@ -4,12 +4,12 @@ namespace App\Providers;
 
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
@@ -33,10 +33,10 @@ class FortifyServiceProvider extends ServiceProvider
     }
 
     /**
-     * Configure staff login for the admin website.
+     * Configure staff login for the staff website (Super Admin, Admin Cabang, Kasir).
      *
-     * Kredensial salah, akun nonaktif, dan Admin Cabang tanpa cabang mendapat pesan umum yang sama.
-     * Kasir/Kurir dengan kredensial benar diarahkan ke aplikasi Android.
+     * Kredensial salah, akun nonaktif, dan staf cabang tanpa cabang mendapat pesan umum yang sama.
+     * Kurir dengan kredensial benar diarahkan ke halaman akses ditolak (J-01 US-01).
      */
     private function configureAuthentication(): void
     {
@@ -52,9 +52,7 @@ class FortifyServiceProvider extends ServiceProvider
             }
 
             if (! $user->role->canAccessWeb()) {
-                throw ValidationException::withMessages([
-                    Fortify::username() => [__('Akun ini tidak memiliki akses ke website admin. Gunakan aplikasi Android SIGALON.')],
-                ]);
+                throw new HttpResponseException(redirect()->route('akses-ditolak'));
             }
 
             return $user;

@@ -2,16 +2,14 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Enums\Role;
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Pelanggan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
-use Laravel\Socialite\Two\AbstractProvider;
 use Laravel\Socialite\Two\InvalidStateException;
+use Laravel\Socialite\Two\User;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse;
 use Throwable;
 
@@ -27,84 +25,62 @@ class GoogleAuthController extends Controller
 
     /**
      * Tangani callback dari Google OAuth.
+     *
+     * Parameter `state` OAuth selalu diperiksa (tanpa mode stateless) untuk mencegah login CSRF.
+     * Detail error teknis hanya dicatat di log, tidak ditampilkan ke pelanggan.
      */
     public function callback(Request $request): RedirectResponse
     {
         try {
-            /** @var \Laravel\Socialite\Two\User $googleUser */
+            /** @var User $googleUser */
             $googleUser = Socialite::driver('google')->user();
         } catch (InvalidStateException) {
-            $driver = Socialite::driver('google');
-
-            if (! $driver instanceof AbstractProvider) {
-                throw new InvalidStateException('Driver does not support stateless OAuth.');
-            }
-
-            /** @var \Laravel\Socialite\Two\User $googleUser */
-            $googleUser = $driver->stateless()->user();
+            return $this->failed(__('Sesi masuk Google sudah kedaluwarsa. Silakan coba lagi.'));
         } catch (Throwable $e) {
-            Log::error('Google OAuth callback error: '.$e->getMessage(), [
-                'exception' => $e,
-            ]);
+            report($e);
 
-            return redirect()->route('customer.login')->withErrors([
-                'phone' => __('Gagal masuk dengan akun Google (:error). Silakan coba lagi.', ['error' => $e->getMessage() ?: class_basename($e)]),
-            ]);
+            return $this->failed(__('Gagal masuk dengan akun Google. Silakan coba lagi.'));
         }
 
         $googleId = (string) $googleUser->getId();
         $email = $googleUser->getEmail();
 
-        // 1. Cari akun hanya lewat google_id (jangan auto-link via email)
-        $user = User::where('google_id', $googleId)->first();
+        // Cari akun hanya lewat google_id; akun Google dan akun nomor HP tidak digabung otomatis (PRD §6).
+        $pelanggan = Pelanggan::where('google_id', $googleId)->first();
 
-        if ($user) {
-            if (! $user->is_active) {
-                return redirect()->route('customer.login')->withErrors([
-                    'phone' => __('Akun Anda tidak aktif. Silakan hubungi admin.'),
-                ]);
-            }
-
-            if (! $user->isPelanggan()) {
-                return redirect()->route('customer.login')->withErrors([
-                    'phone' => __('Akun staf tidak dapat masuk di sini. Silakan masuk melalui portal staf di /login.'),
-                ]);
-            }
-
-            // Perbarui foto profil Google jika berubah
+        if ($pelanggan) {
             $avatarUrl = $googleUser->getAvatar();
-            if ($avatarUrl && $user->google_avatar !== $avatarUrl) {
-                $user->google_avatar = $avatarUrl;
-                $user->save();
+
+            if ($avatarUrl && $pelanggan->google_avatar !== $avatarUrl) {
+                $pelanggan->google_avatar = $avatarUrl;
+                $pelanggan->save();
             }
 
-            Auth::guard('web')->login($user);
+            Auth::guard('pelanggan')->login($pelanggan);
             $request->session()->regenerate();
 
             return redirect()->intended(route('home'));
         }
 
-        // 2. Jika akun belum ada, cek apakah email Google sudah digunakan akun lain
-        if ($email && User::where('email', $email)->exists()) {
-            return redirect()->route('customer.login')->withErrors([
-                'phone' => __('Email dari akun Google ini sudah digunakan oleh akun lain.'),
-            ]);
+        if ($email && Pelanggan::where('email', $email)->exists()) {
+            return $this->failed(__('Email dari akun Google ini sudah terdaftar pada akun pelanggan lain.'));
         }
 
-        // 3. Buat akun pelanggan baru via Google
-        $newUser = new User;
-        $newUser->name = $googleUser->getName() ?: 'Pelanggan';
-        $newUser->email = $email;
-        $newUser->google_id = $googleId;
-        $newUser->google_avatar = $googleUser->getAvatar();
-        $newUser->role = Role::Pelanggan;
-        $newUser->is_active = true;
-        $newUser->cabang_id = null;
-        $newUser->save();
+        $pelanggan = new Pelanggan;
+        $pelanggan->nama = $googleUser->getName() ?: 'Pelanggan';
+        $pelanggan->email = $email;
+        $pelanggan->google_id = $googleId;
+        $pelanggan->google_avatar = $googleUser->getAvatar();
+        $pelanggan->save();
 
-        Auth::guard('web')->login($newUser);
+        Auth::guard('pelanggan')->login($pelanggan);
         $request->session()->regenerate();
 
         return redirect()->route('home')->with('status', __('Berhasil masuk dengan akun Google!'));
+    }
+
+    private function failed(string $message): RedirectResponse
+    {
+        return redirect()->route('customer.login')->withErrors(['phone' => $message]);
     }
 }

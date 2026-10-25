@@ -27,7 +27,7 @@
                     icon="home"
                     :href="route('dashboard')"
                     :current="request()->routeIs('dashboard')"
-                    class="data-current:border-transparent! data-current:bg-primary-bright! data-current:text-white!"
+                    class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
                     wire:navigate
                 >
                     {{ __('Dasbor') }}

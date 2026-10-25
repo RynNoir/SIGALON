@@ -5,8 +5,8 @@ Baca file ini sebelum melakukan perubahan kode.
 ## 1. Sumber kebenaran
 Urutan prioritas:
 1. Instruksi terbaru yang eksplisit dari pengguna/Product Owner.
-2. `docs/PRD.md` untuk kebutuhan produk dan aturan bisnis.
-3. `docs/sprints/sprint-1.md` untuk scope sprint aktif.
+2. `docs/PRD.md` untuk kebutuhan produk dan aturan bisnis, dan `docs/ERD_SIGALON.md` untuk model data.
+3. `docs/sprints/sprint-<n>.md` (isi J-01 per sprint) untuk scope sprint aktif.
 4. `docs/USER_STORIES_STATUS.md` untuk status yang sudah diverifikasi.
 5. `docs/DEVELOPMENT_WORKFLOW.md` dan `docs/DESIGN_SYSTEM.md`.
 6. Kode yang sudah ada dan tesnya.
@@ -15,8 +15,8 @@ Urutan prioritas:
 Jika dua sumber bertentangan, jangan diam-diam memilih. Jelaskan konflik dan minta keputusan atau tandai sebagai keputusan terbuka.
 
 ## 2. Scope aktif
-- Fokus saat ini hanya Sprint 1.
-- Jangan mulai story Sprint 2–4 tanpa permintaan eksplisit.
+- Sprint aktif mengikuti PRD §17. Selesaikan sisa story sprint sebelumnya lebih dulu.
+- Jangan mulai story sprint berikutnya tanpa permintaan eksplisit.
 - Jangan menganggap story selesai hanya karena kode telah dibuat.
 - Jangan mengubah dokumen proyek lama secara otomatis. Ubah dokumentasi repo hanya bila diminta atau bila pembaruan status story memang bagian dari tugas yang disetujui.
 
@@ -33,7 +33,7 @@ Jika dua sumber bertentangan, jangan diam-diam memilih. Jelaskan konflik dan min
 - Jangan menyimpan secret/API key/password ke repository.
 
 ## 4. Cara memulai setiap tugas
-1. Baca `docs/sprints/sprint-1.md` dan `docs/USER_STORIES_STATUS.md`.
+1. Baca `docs/sprints/sprint-<n>.md` untuk sprint story tersebut dan `docs/USER_STORIES_STATUS.md`.
 2. Identifikasi kode story, tujuan, acceptance criteria, status, pemilik, dan dependensi.
 3. Periksa struktur proyek dan status Git sebelum mengubah file. Jika belum berada di branch story, buat atau pindah ke branch tersebut sesuai §3.
 4. Buat rencana singkat dan daftar file yang kemungkinan berubah.
@@ -53,13 +53,14 @@ Jika dua sumber bertentangan, jangan diam-diam memilih. Jelaskan konflik dan min
 - Jika tes tidak bisa dijalankan, jelaskan alasannya.
 - Untuk data pelanggan, kumpulkan seminimal mungkin dan jangan bocorkan data ke log.
 - Jangan mengimplementasikan peminjaman galon atau WhatsApp API otomatis; fitur tersebut di luar scope terbaru.
-- Galon kosong baru hanya dijual melalui walk-in; harganya dapat dikonfigurasi Super Admin. Jangan mengasumsikan transaksi gabungan dengan air isi ulang sebelum keputusan dibuat.
+- Semua harga ada di satu file konfigurasi `config/sigalon.php` (bukan tabel, bukan menu). Galon kosong baru hanya dijual melalui walk-in dan nominalnya masih nilai sementara. Satu transaksi berisi satu jenis item.
+- Akun staf ada di tabel `users` (guard `web`, role `super_admin`/`admin_cabang`/`kasir`/`kurir`). Akun pelanggan ada di tabel `pelanggan` (guard `pelanggan`, model `App\Models\Pelanggan`). Jangan mencampur keduanya.
 
 ## 6. Design/UX
 Ikuti `docs/DESIGN_SYSTEM.md`: Aqua Professional, responsive, minimalis, state loading/empty/error/success, form jelas, aksesibilitas dan ukuran sentuh yang nyaman.
-- Gunakan token warna Tailwind dari `resources/css/app.css` (`primary`, `ink`, `muted`, `surface`, dan seterusnya); jangan menulis hex langsung di view.
+- Gunakan token warna Tailwind dari `resources/css/app.css` (`primary`, `primary-strong`, `deep`, `ink`, `muted`, `surface`, dan seterusnya); jangan menulis hex langsung di view. Palet mengikuti PRD v1.2 §11; `brand` (`#0891B2`) hanya untuk elemen non-teks.
 - Font Plus Jakarta Sans; hanya mode terang; komponen Flux UI versi gratis lebih dulu.
-- Sebelum membuat UI, baca `docs/design/README.md` untuk layar yang relevan dengan story (pemetaan di `docs/sprints/sprint-1.md`). Ambil pola visualnya saja; jangan menyalin fitur, harga, label, atau data contoh dari gambar yang tidak ada di PRD. Jika gambar bertentangan dengan PRD, ikuti PRD dan laporkan konfliknya.
+- Sebelum membuat UI, baca `docs/design/README.md` untuk layar yang relevan dengan story (pemetaan di `docs/sprints/sprint-<n>.md`). Ambil pola visualnya saja; jangan menyalin fitur, harga, label, atau data contoh dari gambar yang tidak ada di PRD. Jika gambar bertentangan dengan PRD, ikuti PRD dan laporkan konfliknya.
 
 ## 7. Status story dan handoff
 Status yang diizinkan: `TODO`, `IN_PROGRESS`, `BLOCKED`, `REVIEW`, `DONE`.

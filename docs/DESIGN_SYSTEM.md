@@ -1,48 +1,53 @@
 # Design System — SIGALON
 
 ## Arah visual
-**Aqua Professional:** minimalis, bersih, profesional, ringan, dan berorientasi pada tugas operasional. Latar keunguan sangat muda, kartu putih berradius besar dengan bayangan halus, dan aksen biru-petrol.
+**Aqua Professional:** bersih, modern, profesional, dengan warna utama Light Blue dan Cyan (PRD v1.2 §11). Latar Ice Blue, kartu putih berradius besar dengan bayangan halus.
 
-Referensi visual ada di `docs/design/README.md` dan `docs/design/references/`. Gambar referensi **hanya untuk gaya visual**. Fitur yang tidak ada di PRD tidak boleh ditiru, dan bila bertentangan, PRD yang berlaku.
+Referensi visual ada di `docs/design/README.md` dan `docs/design/references/`. Gambar referensi **hanya untuk gaya visual**; warnanya tidak dipakai lagi. Fitur yang tidak ada di PRD tidak boleh ditiru, dan bila bertentangan, PRD yang berlaku.
 
 ## Token warna
-Sumber: palet template referensi (19 Oktober 2026), dengan penyesuaian kontras yang ditandai *.
+Sumber: palet PRD v1.2 §11 (25 Oktober 2026). Nilai bertanda * digelapkan dari palet PRD karena warna aslinya gagal kontras teks WCAG AA (PRD §9 mewajibkan kontras cukup). Warna asli PRD tetap tersedia untuk elemen non-teks.
 Token didefinisikan di `resources/css/app.css` (`@theme`). Gunakan nama kelas Tailwind di tabel ini, misalnya `bg-primary`, `text-muted`, `bg-surface-low`, dan jangan menulis hex langsung di Blade atau Flutter.
 
 | Token | Hex | Kelas Tailwind | Penggunaan |
 |---|---|---|---|
-| Primary | `#00647C` | `primary` | Tombol utama, link, angka penting (total, pendapatan), teks eyebrow |
-| Primary Bright | `#007F9D` | `primary-bright` | Item menu sidebar aktif, hover tombol utama |
-| Primary Soft | `#E2E7FF` | `primary-soft` | Tombol sekunder, kotak ikon pada stat card, pilihan yang tidak aktif |
-| Ink | `#131B2E` | `ink` | Teks utama dan heading |
-| Muted* | `#5B666B` | `muted` | Teks sekunder dan keterangan (template `#6E797E` digelapkan agar lulus 4.5:1) |
-| Surface | `#FAF8FF` | `surface` | Latar halaman |
-| Surface Low | `#F2F3FF` | `surface-low` | Header tabel, panel di dalam kartu, latar ringkasan |
+| Brand (PRD Primary Cyan) | `#0891B2` | `brand` | Ikon, garis aksen, cincin fokus, marker. **Bukan** untuk teks kecil atau latar tombol bertulisan putih (3.68:1) |
+| Brand Bright (PRD Bright Cyan Accent) | `#22D3EE` | `brand-bright` | Aksen dekoratif seperlunya; tidak untuk teks |
+| Primary* | `#0E7490` | `primary` / `accent` | Tombol utama, tautan, angka penting (total, pendapatan), teks eyebrow |
+| Primary Strong* | `#155E75` | `primary-strong` | Hover tombol utama, item menu sidebar aktif |
+| Primary Soft (PRD Light Cyan) | `#CFFAFE` | `primary-soft` | Tombol sekunder, kotak ikon pada stat card, highlight lembut |
+| Deep (PRD Deep Blue) | `#0C4A6E` | `deep` | Judul dan navigasi penting |
+| Ink (PRD Primary Text) | `#0F172A` | `ink` | Teks utama |
+| Muted* | `#5B6779` | `muted` | Teks sekunder dan keterangan (PRD `#64748B` gagal di atas Ice Blue: 4.46:1) |
+| Surface (PRD Ice Blue) | `#F0F9FF` | `surface` | Latar halaman |
+| Surface Low | `#E0F2FE` | `surface-low` | Header tabel, panel di dalam kartu, latar ringkasan |
 | White | `#FFFFFF` | `white` | Kartu, form, dan input |
-| Line | `#E2E7FF` | `line` | Garis pemisah dan border kartu bila diperlukan |
-| Outline | `#6E797E` | `outline` | Border elemen interaktif yang wajib terlihat (checkbox, radio, fokus) |
-| Info | `#275C81` di atas `#D6EBFF` | `info` / `info-soft` | Badge status proses |
-| Success* | `#047857` di atas `#DCFCE7` | `success` / `success-soft` | Selesai, aktif, berhasil (hijau template `#059669` hanya untuk titik dekoratif) |
-| Warning | `#92400E` di atas `#FEF3C7` | `warning` / `warning-soft` | Menunggu, perlu verifikasi, belum dibayar |
-| Danger | `#BA1A1A` di atas `#FFF0EF` | `danger` / `danger-soft` | Error, gagal, nilai pengeluaran, aksi destruktif |
+| Line (PRD Border) | `#E2E8F0` | `line` | Garis pemisah dan border kartu |
+| Outline | `#64748B` | `outline` | Border elemen interaktif yang wajib terlihat (checkbox, radio) |
+| Info* | `#1D4ED8` di atas `#DBEAFE` | `info` / `info-soft` | Badge status proses (PRD `#2563EB`) |
+| Success* | `#15803D` di atas `#DCFCE7` | `success` / `success-soft` | Selesai, aktif, berhasil (PRD `#16A34A` hanya untuk titik/ikon) |
+| Warning* | `#B45309` di atas `#FEF3C7` | `warning` / `warning-soft` | Menunggu, perlu verifikasi (PRD `#D97706` hanya untuk ikon) |
+| Danger* | `#B91C1C` di atas `#FEE2E2` | `danger` / `danger-soft` | Error, gagal, nilai pengeluaran, aksi destruktif (PRD `#DC2626`) |
 
 Warna aksen komponen Flux (`--color-accent`) memakai **Primary**.
 
 ### Kontras (WCAG AA, teks normal ≥ 4.5:1, komponen UI ≥ 3:1)
 | Kombinasi | Rasio | Status |
 |---|---|---|
-| Putih di atas Primary | 6.74 | Lulus |
-| Putih di atas Primary Bright | 4.64 | Lulus |
-| Primary di atas Primary Soft | 5.49 | Lulus |
-| Ink di atas Surface | 16.29 | Lulus |
-| Muted di atas putih / Surface / Surface Low | 5.90 / 5.60 / 5.35 | Lulus |
-| Info di atas Info Soft | 5.86 | Lulus |
-| Success di atas Success Soft | 4.99 | Lulus |
-| Warning di atas Warning Soft | 6.37 | Lulus |
-| Danger di atas putih / Danger Soft | 6.46 / 5.83 | Lulus |
-| Outline di atas putih (komponen UI) | 4.47 | Lulus |
-| Muted template `#6E797E` di atas Surface | 4.24 | Gagal — jangan dipakai untuk teks |
-| Hijau template `#059669` di atas putih | 3.77 | Gagal — hanya untuk titik dekoratif |
+| Putih di atas Primary | 5.36 | Lulus |
+| Putih di atas Primary Strong | 7.27 | Lulus |
+| Primary di atas Surface / Surface Low / Primary Soft | 5.03 / 4.67 / 4.79 | Lulus |
+| Deep di atas putih | 9.46 | Lulus |
+| Ink di atas Surface | 16.75 | Lulus |
+| Muted di atas putih / Surface / Surface Low / Primary Soft | 5.74 / 5.38 / 5.00 / 5.12 | Lulus |
+| Info di atas putih / Info Soft | 6.70 / 5.49 | Lulus |
+| Success di atas putih / Success Soft | 5.02 / 4.57 | Lulus |
+| Warning di atas putih / Warning Soft | 5.02 / 4.51 | Lulus |
+| Danger di atas putih / Danger Soft | 6.47 / 5.30 | Lulus |
+| Outline di atas putih / Surface (komponen UI) | 4.76 / 4.46 | Lulus |
+| Brand di atas Surface (komponen UI, bukan teks) | 3.45 | Lulus untuk ikon/garis saja |
+| PRD Primary Cyan `#0891B2` sebagai teks atau di bawah teks putih | 3.68 | Gagal — pakai Primary |
+| PRD Success `#16A34A` / Warning `#D97706` dengan teks putih | 3.30 / 3.19 | Gagal — pakai versi * |
 
 ### Nada badge status
 Badge selalu berisi teks. Warna hanya sebagai penguat.
@@ -82,7 +87,7 @@ Badge selalu berisi teks. Warna hanya sebagai penguat.
 
 ## Pola per platform
 ### Website admin
-- Sidebar di desktop: logo, blok "Lokasi aktif" (Super Admin: pemilih cabang; Admin Cabang: label tetap), dan menu dengan item aktif berlatar `primary-bright`. Di layar kecil, sidebar menjadi menu yang bisa dibuka-tutup.
+- Sidebar di desktop: logo, blok "Lokasi aktif" (Super Admin: pemilih cabang; Admin Cabang dan Kasir: label tetap), dan menu dengan item aktif berlatar `primary-strong`. Di layar kecil, sidebar menjadi menu yang bisa dibuka-tutup.
 - Topbar: tanggal hari ini, notifikasi internal, dan profil dengan label peran.
 - Menu hanya untuk fitur yang sudah ada dan sesuai peran. Pembatasan juga wajib di backend.
 - Ringkasan metrik di atas; tabel dan filter di bawah.

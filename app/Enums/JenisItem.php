@@ -4,14 +4,14 @@ namespace App\Enums;
 
 enum JenisItem: string
 {
-    case AirIsiUlang = 'air_isi_ulang';
-    case GalonKosong = 'galon_kosong';
+    case IsiUlang = 'isi_ulang';
+    case GalonBaru = 'galon_baru';
 
     public function label(): string
     {
         return match ($this) {
-            self::AirIsiUlang => 'Air isi ulang',
-            self::GalonKosong => 'Galon kosong baru',
+            self::IsiUlang => 'Air isi ulang',
+            self::GalonBaru => 'Galon kosong baru',
         };
     }
 }

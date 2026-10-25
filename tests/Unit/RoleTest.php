@@ -15,24 +15,19 @@ class RoleTest extends TestCase
         $this->assertTrue(Role::Kurir->requiresCabang());
     }
 
-    public function test_only_super_admin_and_admin_cabang_can_access_web(): void
+    public function test_kurir_is_the_only_role_without_staff_website_access(): void
     {
         $this->assertTrue(Role::SuperAdmin->canAccessWeb());
         $this->assertTrue(Role::AdminCabang->canAccessWeb());
-        $this->assertFalse(Role::Kasir->canAccessWeb());
+        $this->assertTrue(Role::Kasir->canAccessWeb());
         $this->assertFalse(Role::Kurir->canAccessWeb());
     }
 
-    public function test_roles_match_prd_values(): void
+    public function test_roles_match_erd_values(): void
     {
         $this->assertSame(
-            ['super_admin', 'admin_cabang', 'kasir', 'kurir', 'pelanggan'],
-            array_column(Role::cases(), 'value'),
-        );
-
-        $this->assertSame(
             ['super_admin', 'admin_cabang', 'kasir', 'kurir'],
-            array_column(Role::staffCases(), 'value'),
+            array_column(Role::cases(), 'value'),
         );
     }
 }

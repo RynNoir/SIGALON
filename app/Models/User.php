@@ -17,12 +17,9 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 /**
  * @property int $id
  * @property string $name
- * @property string|null $email
- * @property string|null $phone
- * @property string|null $google_id
- * @property string|null $google_avatar
+ * @property string $email
  * @property CarbonImmutable|null $email_verified_at
- * @property string|null $password
+ * @property string $password
  * @property Role $role
  * @property int|null $cabang_id
  * @property bool $is_active
@@ -33,7 +30,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property CarbonImmutable|null $created_at
  * @property CarbonImmutable|null $updated_at
  */
-#[Fillable(['name', 'email', 'phone', 'google_id', 'google_avatar', 'password'])]
+#[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -68,11 +65,6 @@ class User extends Authenticatable
         return $this->role === Role::SuperAdmin;
     }
 
-    public function isPelanggan(): bool
-    {
-        return $this->role === Role::Pelanggan;
-    }
-
     /**
      * Akun boleh memakai website admin: aktif, perannya web, dan sudah terikat cabang bila perannya mewajibkan.
      */
@@ -93,21 +85,5 @@ class User extends Authenticatable
         return Str::length($initials) > 1
             ? Str::substr($initials, 0, 1).Str::substr($initials, -1)
             : $initials;
-    }
-
-    /**
-     * Huruf pertama nama untuk avatar inisial.
-     */
-    public function avatarInitial(): string
-    {
-        return Str::upper(Str::substr(trim($this->name), 0, 1)) ?: '?';
-    }
-
-    /**
-     * URL foto profil Google, atau null jika login bukan via Google.
-     */
-    public function googleAvatarUrl(): ?string
-    {
-        return $this->google_avatar ?: null;
     }
 }

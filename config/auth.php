@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Pelanggan;
 use App\Models\User;
 
 return [
@@ -42,6 +43,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Pelanggan website (tabel `pelanggan`), terpisah dari akun staf.
+        'pelanggan' => [
+            'driver' => 'session',
+            'provider' => 'pelanggan',
+        ],
     ],
 
     /*
@@ -65,6 +72,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'pelanggan' => [
+            'driver' => 'eloquent',
+            'model' => Pelanggan::class,
         ],
 
         // 'users' => [

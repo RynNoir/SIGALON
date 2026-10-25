@@ -61,30 +61,28 @@
                 href="{{ $resolvedWhatsappUrl }}"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-primary-bright"
+                class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-primary-strong"
                 data-test="navbar-cta-order"
             >
                 <span>{{ __('Pesan Air Galon') }}</span>
             </a>
 
-            @auth
-                @if(Auth::user()->isPelanggan())
-                    @php $pelanggan = Auth::user(); @endphp
+            @if($pelanggan = Auth::guard('pelanggan')->user())
                     <div class="flex items-center gap-3 text-sm">
                         {{-- Avatar: foto Google atau inisial --}}
                         <div class="relative group">
                             @if($pelanggan->googleAvatarUrl())
                                 <img
                                     src="{{ $pelanggan->googleAvatarUrl() }}"
-                                    alt="{{ $pelanggan->name }}"
-                                    title="{{ $pelanggan->name }}"
+                                    alt="{{ $pelanggan->nama }}"
+                                    title="{{ $pelanggan->nama }}"
                                     class="size-9 rounded-full object-cover ring-2 ring-primary/30 shadow-sm cursor-default select-none"
                                     referrerpolicy="no-referrer"
                                     data-test="customer-avatar-google"
                                 >
                             @else
                                 <div
-                                    title="{{ $pelanggan->name }}"
+                                    title="{{ $pelanggan->nama }}"
                                     class="size-9 rounded-full bg-primary flex items-center justify-center text-white font-bold text-sm ring-2 ring-primary/30 shadow-sm cursor-default select-none"
                                     data-test="customer-avatar-initial"
                                 >
@@ -103,14 +101,13 @@
                             </button>
                         </form>
                     </div>
-                @else
+            @elseif(Auth::guard('web')->check())
                     <a
                         href="{{ route('dashboard') }}"
                         class="rounded-lg bg-surface-low px-4 py-2 text-sm font-semibold text-primary hover:bg-primary-soft"
                     >
                         {{ __('Dasbor Staf') }}
                     </a>
-                @endif
             @else
                 <a
                     href="{{ route('customer.login') }}"
@@ -119,7 +116,7 @@
                 >
                     {{ __('Masuk / Daftar') }}
                 </a>
-            @endauth
+            @endif
         </div>
 
         <!-- Mobile Menu Toggle Button -->
@@ -193,15 +190,13 @@
             >
                 {{ __('Pesan Air Galon') }}
             </a>
-            @auth
-                @if(Auth::user()->isPelanggan())
-                    @php $pelangganMobile = Auth::user(); @endphp
+            @if($pelangganMobile = Auth::guard('pelanggan')->user())
                     <div class="flex items-center justify-between pt-2">
                         <div class="flex items-center gap-2">
                             @if($pelangganMobile->googleAvatarUrl())
                                 <img
                                     src="{{ $pelangganMobile->googleAvatarUrl() }}"
-                                    alt="{{ $pelangganMobile->name }}"
+                                    alt="{{ $pelangganMobile->nama }}"
                                     class="size-8 rounded-full object-cover ring-2 ring-primary/20"
                                     referrerpolicy="no-referrer"
                                 >
@@ -210,7 +205,7 @@
                                     {{ $pelangganMobile->avatarInitial() }}
                                 </div>
                             @endif
-                            <span class="text-sm font-medium text-ink">{{ $pelangganMobile->name }}</span>
+                            <span class="text-sm font-medium text-ink">{{ $pelangganMobile->nama }}</span>
                         </div>
                         <form method="POST" action="{{ route('customer.logout') }}" class="inline">
                             @csrf
@@ -219,16 +214,15 @@
                             </button>
                         </form>
                     </div>
-                @else
+            @elseif(Auth::guard('web')->check())
                     <a href="{{ route('dashboard') }}" class="w-full text-center rounded-lg bg-surface-low py-2 text-sm font-semibold text-primary">
                         {{ __('Dasbor Staf') }}
                     </a>
-                @endif
             @else
                 <a href="{{ route('customer.login') }}" class="w-full text-center rounded-lg border border-line py-2 text-sm font-semibold text-ink">
                     {{ __('Masuk / Daftar') }}
                 </a>
-            @endauth
+            @endif
         </div>
     </div>
 </header>

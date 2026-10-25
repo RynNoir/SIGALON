@@ -7,14 +7,17 @@ return [
     | Seeder Lokal
     |--------------------------------------------------------------------------
     |
-    | Akun Super Admin awal untuk lingkungan pengembangan. Nilai diisi di .env
-    | masing-masing developer dan tidak pernah disimpan ke repository.
+    | Akun default untuk pengembangan dan pengujian lokal: Super Admin, Admin
+    | Cabang, Kasir, dan Kurir (email ber-domain .test). Password diisi di .env
+    | masing-masing developer dan tidak pernah disimpan ke repository; jika
+    | kosong, seeder membuat password acak dan menampilkannya sekali.
+    | Akun default tidak dibuat di environment production.
     |
     */
 
     'seed' => [
-        'superadmin_email' => env('SEED_SUPERADMIN_EMAIL'),
-        'superadmin_password' => env('SEED_SUPERADMIN_PASSWORD'),
+        'superadmin_email' => env('SEED_SUPERADMIN_EMAIL', 'superadmin@sigalon.test'),
+        'default_password' => env('SEED_DEFAULT_PASSWORD', env('SEED_SUPERADMIN_PASSWORD')),
     ],
 
     /*
@@ -22,10 +25,12 @@ return [
     | Tarif dan Harga Layanan
     |--------------------------------------------------------------------------
     |
-    | Harga air isi ulang resmi (PRD §6):
+    | Satu-satunya sumber harga aplikasi (PRD §6): tidak ada tabel atau menu harga.
+    | Mengubah harga berarti mengubah file ini (atau .env) lalu deploy ulang.
     | - Walk-in: Rp6.000 / galon
-    | - COD / Antar-Jemput: Rp7.000 / galon
-    | - Galon kosong baru: dikonfigurasi Super Admin (nullable jika belum diset)
+    | - COD / Antar-Jemput dan canvassing: Rp7.000 / galon
+    | - Galon kosong baru: nilai sementara sampai dikonfirmasi mitra; HARGA_GALON_BARU
+    |   kosong memakai 45000, bernilai 0 menyembunyikan kartu galon baru di landing page.
     |
     */
     'harga' => [

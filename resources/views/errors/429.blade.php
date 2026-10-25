@@ -6,8 +6,8 @@
             <flux:text class="text-muted!">{{ __('Demi keamanan, coba lagi dalam 1 menit.') }}</flux:text>
         </div>
 
-        <flux:button variant="primary" :href="route('login')" class="w-full">
-            {{ __('Kembali ke halaman masuk') }}
+        <flux:button variant="primary" :href="url()->previous(route('home'))" class="w-full">
+            {{ __('Kembali') }}
         </flux:button>
     </div>
 </x-layouts::auth>

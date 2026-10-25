@@ -1,17 +1,17 @@
 # User Story Status — SIGALON Sprint 1
 
-**Terakhir diperbarui:** 19 Oktober 2026  
-**Penting:** Status di bawah adalah status awal dokumentasi, bukan hasil pemeriksaan repository. Semua story berstatus konfirmasi/TODO sampai tim memvalidasi.
+**Terakhir diperbarui:** 25 Oktober 2026  
+**Penting:** Status diperbarui berdasarkan bukti tes. Status `DONE` hanya setelah review oleh anggota lain (DoD no. 8).
 
 | ID | Ringkasan | PIC J-01 | Status | Tes/bukti | Blocker/keputusan |
 |---|---|---|---|---|---|
-| US-01 | Login staf web dengan role | Reyhan | REVIEW | `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 50/50 (19 Okt 2026). Tes: `tests/Feature/Auth/StaffWebAccessTest.php`, `tests/Unit/RoleTest.php`. Smoke test HTTP lulus | Reviewer belum ditunjuk (DoD no. 8). Cek visual di browser belum dilakukan. Branch `feature/US-01-login-staf-web-with-role` |
-| US-02 | Login pelanggan | Velisa | REVIEW | Pint lulus, PHPStan 0 error, PHPUnit 74/74 (20 Okt 2026). Tes: `tests/Feature/Auth/CustomerLoginTest.php`, `tests/Feature/Auth/CustomerRegistrationTest.php`, `tests/Feature/Auth/CustomerAccessTest.php`, `tests/Feature/Auth/GoogleAuthTest.php`. | Reviewer belum ditunjuk (DoD no. 8). Kredensial asli Google OAuth & nomor WA admin asli menyusul dari tim. Branch `feature/US-02-login-pelanggan` |
-| US-03 | Landing page dan peta cabang | Shalwa | REVIEW | Pint lulus, PHPStan 0 error, PHPUnit 87/87 (20 Okt 2026). Tes: `tests/Feature/LandingPageTest.php`. Build Vite lulus | Reviewer belum ditunjuk (DoD no. 8). Koordinat Cabang Dadok Tunggul Hitam & Siteba di `CabangSeeder` adalah perkiraan, butuh verifikasi PO via Maps/OSM. Branch `feature/US-03-landing-page-dan-peta-cabang` |
-| US-04 | Dashboard Super Admin | Reyhan | TODO — konfirmasi | Belum dicatat | Sumber data transaksi dan definisi pendapatan |
-| US-05 | Dashboard Admin Cabang | Velisa | TODO — konfirmasi | Belum dicatat | Isolasi data per cabang |
-| US-06 | Pengelolaan Admin Cabang | Shalwa | TODO — konfirmasi | Belum dicatat | Hapus vs nonaktifkan akun |
-| US-07 | Pengelolaan Kasir/Kurir | Nurul | TODO — konfirmasi | Belum dicatat | Role schema dan batas akses |
+| US-01 | Login staf (Super Admin, Admin Cabang, Kasir) ke website | Reyhan | REVIEW | 25 Okt 2026, branch `fix/sprint-1-penyesuaian-prd-v1.2`: `composer test` Pint lulus, PHPStan 0 error, PHPUnit 94/94. Tes: `tests/Feature/Auth/StaffWebAccessTest.php`, `tests/Unit/RoleTest.php`. Kasir bisa masuk; Kurir diarahkan ke halaman akses ditolak; akun nonaktif ditolak | Reviewer belum ditunjuk (DoD no. 8). Cek visual di browser belum dilakukan |
+| US-02 | Login Pelanggan dengan Google | Velisa | REVIEW | 25 Okt 2026, branch yang sama: PHPUnit 94/94. Tes: `tests/Feature/Auth/GoogleAuthTest.php`, `CustomerLoginTest.php`, `CustomerRegistrationTest.php`, `CustomerAccessTest.php`. Pelanggan di tabel `pelanggan` (ERD); akun Google tersimpan dengan `no_hp` dan `alamat` kosong; `state` OAuth wajib valid | Reviewer belum ditunjuk (DoD no. 8). Kredensial asli Google OAuth dan nomor WA admin diisi di `.env` masing-masing |
+| US-03 | Landing page: info produk, harga, peta cabang | Shalwa | REVIEW | 25 Okt 2026, branch yang sama: PHPUnit 94/94. Tes: `tests/Feature/LandingPageTest.php` (termasuk escaping nama/alamat cabang). Build Vite lulus | Reviewer belum ditunjuk (DoD no. 8). Popup peta kini dibangun dengan `textContent`; verifikasi visual popup di browser belum dilakukan |
+| US-04 | Dashboard Super Admin | Reyhan | REVIEW | 25 Okt 2026, branch `feature/US-04-dashboard-super-admin`: `composer test` Pint lulus, PHPStan 0 error, PHPUnit 105/105; `npm run build` lulus. Tes: `tests/Feature/Dashboard/SuperAdminDashboardTest.php`, `tests/Feature/Foundation/SchemaTest.php`. Query ringkasan diuji juga di MariaDB | Reviewer belum ditunjuk (DoD no. 8). Cek visual di browser belum dilakukan. Data nyata baru ada setelah Sprint 2 (US-09–US-11) |
+| US-05 | Dashboard Admin Cabang | Velisa | TODO | Belum dicatat | Pakai `Transaksi::ringkasanPerCabangDanKanal(..., $cabangId)` dari US-04; isi bagian placeholder di `resources/views/pages/⚡dashboard.blade.php`; uji isolasi `cabang_id` |
+| US-06 | Super Admin mengelola data cabang dan akun Admin Cabang | Shalwa | TODO | Belum dicatat | Akun dinonaktifkan, tidak dihapus (J-01 kesepakatan no. 3) |
+| US-07 | Admin Cabang mengelola akun Kasir & Kurir | Nurul | TODO | Belum dicatat | Bergantung pola kelola akun US-06 |
 
 ## Cara memperbarui status
 Setiap perubahan status wajib memiliki:

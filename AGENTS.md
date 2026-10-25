@@ -2,8 +2,9 @@
 
 Instruksi ini berlaku untuk AI coding tools yang membaca `AGENTS.md`. Untuk Claude Code, baca juga `CLAUDE.md`.
 
-- Mulai dari `CLAUDE.md`, `docs/PRD.md`, `docs/sprints/sprint-1.md`, `docs/USER_STORIES_STATUS.md`, dan `docs/DESIGN_SYSTEM.md`.
-- Scope aktif hanya Sprint 1 kecuali pengguna meminta lain.
+- Mulai dari `CLAUDE.md`, `docs/PRD.md`, `docs/ERD_SIGALON.md`, `docs/sprints/sprint-<n>.md` (sprint story yang dikerjakan), `docs/USER_STORIES_STATUS.md`, dan `docs/DESIGN_SYSTEM.md`.
+- Sprint aktif mengikuti PRD §17: selesaikan sisa sprint sebelumnya dulu; jangan mulai story sprint berikutnya kecuali pengguna meminta.
+- Akun staf di tabel `users` (guard `web`); akun pelanggan di tabel `pelanggan` (guard `pelanggan`). Semua harga di `config/sigalon.php`.
 - Jangan commit, push, merge, rebase, reset, atau stash tanpa instruksi eksplisit. Berikan saran commit saja.
 - Boleh membuat dan berpindah ke branch story (`feature/US-XX-nama-singkat`) setelah memeriksa `git status`. Jangan menghapus atau me-reset branch. Jika ada perubahan lokal yang bukan milik story, tanyakan dulu.
 - Jangan menandai story DONE tanpa bukti acceptance criteria, tes, dan review.
