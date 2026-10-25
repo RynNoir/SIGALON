@@ -68,7 +68,7 @@
                                     href="{{ $whatsappUrl }}"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    class="inline-flex items-center gap-2.5 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-white shadow-card transition hover:bg-primary-bright focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                                    class="inline-flex items-center gap-2.5 rounded-xl bg-primary px-6 py-3.5 text-base font-semibold text-white shadow-card transition hover:bg-primary-strong focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2"
                                     data-test="hero-cta-whatsapp"
                                 >
                                     <svg class="size-5 fill-current" viewBox="0 0 24 24">
@@ -261,7 +261,7 @@
                                     href="{{ $whatsappUrl }}"
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    class="block w-full rounded-xl bg-primary py-3 text-center text-sm font-semibold text-white shadow-xs transition hover:bg-primary-bright"
+                                    class="block w-full rounded-xl bg-primary py-3 text-center text-sm font-semibold text-white shadow-xs transition hover:bg-primary-strong"
                                     data-test="card-cta-cod"
                                 >
                                     {{ __('Pesan Antar via WhatsApp') }}
@@ -269,7 +269,7 @@
                             </div>
                         </div>
 
-                        {{-- Kartu Galon Kosong Baru (Hanya tampil jika harganya sudah dikonfigurasi Super Admin) --}}
+                        {{-- Kartu Galon Kosong Baru (tampil bila config sigalon.harga.galon_baru terisi; nilai masih sementara, PRD §6) --}}
                         @if($hargaGalonBaru !== null)
                             <div class="flex flex-col justify-between rounded-3xl border border-line bg-surface p-7 shadow-2xs transition hover:shadow-card" data-test="card-galon-baru">
                                 <div>
@@ -536,13 +536,23 @@
                         if (!isNaN(lat) && !isNaN(lng)) {
                             const marker = L.marker([lat, lng]).addTo(sigalonMap);
 
-                            const popupContent = `
-                                <div class="p-1 font-sans">
-                                    <div class="text-[11px] font-semibold text-[#00647C] uppercase tracking-wider">Depot CV. Aufa</div>
-                                    <div class="text-sm font-bold text-[#131B2E] mt-0.5">${branch.nama}</div>
-                                    <div class="text-xs text-[#5B666B] mt-1 leading-snug">${branch.alamat}</div>
-                                </div>
-                            `;
+                            // Nama & alamat diisi lewat textContent agar input data cabang tidak pernah dirender sebagai HTML.
+                            const popupContent = document.createElement('div');
+                            popupContent.className = 'p-1 font-sans';
+
+                            const popupLabel = document.createElement('div');
+                            popupLabel.className = 'text-[11px] font-semibold text-primary uppercase tracking-wider';
+                            popupLabel.textContent = 'Depot CV. Aufa';
+
+                            const popupName = document.createElement('div');
+                            popupName.className = 'text-sm font-bold text-ink mt-0.5';
+                            popupName.textContent = branch.nama ?? '';
+
+                            const popupAddress = document.createElement('div');
+                            popupAddress.className = 'text-xs text-muted mt-1 leading-snug';
+                            popupAddress.textContent = branch.alamat ?? '';
+
+                            popupContent.append(popupLabel, popupName, popupAddress);
 
                             marker.bindPopup(popupContent);
                             const key = `${lat.toFixed(5)}_${lng.toFixed(5)}`;

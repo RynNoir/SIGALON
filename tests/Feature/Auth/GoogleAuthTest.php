@@ -2,12 +2,13 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Enums\Role;
+use App\Models\Pelanggan;
 use App\Models\User;
 use Exception;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Socialite\Contracts\Provider as SocialiteProvider;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Mockery;
 use Tests\TestCase;
@@ -24,7 +25,7 @@ class GoogleAuthTest extends TestCase
         $this->assertStringContainsString('accounts.google.com', (string) $response->getTargetUrl());
     }
 
-    public function test_google_callback_creates_new_customer(): void
+    public function test_google_callback_creates_new_customer_with_empty_phone_and_address(): void
     {
         $this->mockGoogleUser('google-id-12345', 'budi@gmail.com', 'Budi Santoso');
 
@@ -33,83 +34,89 @@ class GoogleAuthTest extends TestCase
         $response->assertRedirect(route('home'))
             ->assertSessionHas('status', 'Berhasil masuk dengan akun Google!');
 
-        $this->assertAuthenticated();
-
-        $user = User::where('google_id', 'google-id-12345')->first();
-        $this->assertNotNull($user);
-        $this->assertSame('Budi Santoso', $user->name);
-        $this->assertSame('budi@gmail.com', $user->email);
-        $this->assertSame(Role::Pelanggan, $user->role);
-        $this->assertTrue($user->is_active);
+        $pelanggan = Pelanggan::where('google_id', 'google-id-12345')->firstOrFail();
+        $this->assertSame('Budi Santoso', $pelanggan->nama);
+        $this->assertSame('budi@gmail.com', $pelanggan->email);
+        $this->assertNull($pelanggan->no_hp);
+        $this->assertNull($pelanggan->alamat);
+        $this->assertNull($pelanggan->password);
+        $this->assertAuthenticatedAs($pelanggan, 'pelanggan');
+        $this->assertGuest('web');
     }
 
     public function test_google_callback_logs_in_existing_customer(): void
     {
-        $customer = User::factory()->pelanggan()->create([
+        $pelanggan = Pelanggan::factory()->google()->create([
             'google_id' => 'google-id-existing',
             'email' => 'existing@gmail.com',
-            'name' => 'Existing Pelanggan',
         ]);
 
         $this->mockGoogleUser('google-id-existing', 'existing@gmail.com', 'Existing Pelanggan');
 
-        $response = $this->get(route('auth.google.callback'));
+        $this->get(route('auth.google.callback'))->assertRedirect(route('home'));
 
-        $response->assertRedirect(route('home'));
-        $this->assertAuthenticatedAs($customer);
+        $this->assertAuthenticatedAs($pelanggan, 'pelanggan');
+        $this->assertDatabaseCount('pelanggan', 1);
     }
 
-    public function test_google_callback_rejects_inactive_google_account(): void
+    public function test_google_callback_rejects_email_already_used_by_another_customer(): void
     {
-        User::factory()->pelanggan()->inactive()->create([
-            'google_id' => 'google-id-inactive',
-            'email' => 'inactive@gmail.com',
+        Pelanggan::factory()->google()->create([
+            'google_id' => 'google-id-lama',
+            'email' => 'budi@gmail.com',
         ]);
 
-        $this->mockGoogleUser('google-id-inactive', 'inactive@gmail.com', 'Inactive User');
+        $this->mockGoogleUser('google-id-baru', 'budi@gmail.com', 'Akun Lain');
 
-        $response = $this->get(route('auth.google.callback'));
+        $this->get(route('auth.google.callback'))
+            ->assertRedirect(route('customer.login'))
+            ->assertSessionHasErrors(['phone' => 'Email dari akun Google ini sudah terdaftar pada akun pelanggan lain.']);
 
-        $response->assertRedirect(route('customer.login'))
-            ->assertSessionHasErrors(['phone']);
-
-        $this->assertGuest();
+        $this->assertGuest('pelanggan');
+        $this->assertDatabaseMissing('pelanggan', ['google_id' => 'google-id-baru']);
     }
 
-    public function test_google_callback_rejects_when_email_already_used_by_staff(): void
+    public function test_staff_email_does_not_block_or_touch_staff_account(): void
     {
-        // Staf sudah terdaftar dengan email ini
-        $staff = User::factory()->superAdmin()->create([
-            'email' => 'admin@aufadepot.com',
-            'google_id' => null,
-        ]);
+        $staff = User::factory()->superAdmin()->create(['email' => 'admin@aufadepot.com']);
 
-        // Akun Google baru mencoba masuk dengan email yang sama
-        $this->mockGoogleUser('google-id-diff', $staff->email, 'Impostor User');
+        $this->mockGoogleUser('google-id-staf', 'admin@aufadepot.com', 'Admin Pribadi');
 
-        $response = $this->get(route('auth.google.callback'));
+        $this->get(route('auth.google.callback'))->assertRedirect(route('home'));
 
-        $response->assertRedirect(route('customer.login'))
-            ->assertSessionHasErrors(['phone']);
-
-        $this->assertGuest();
-
-        // Pastikan tidak ada akun baru yang dibuat atau akun staf ditimpa
-        $this->assertDatabaseMissing('users', ['google_id' => 'google-id-diff']);
+        $this->assertGuest('web');
+        $this->assertSame('admin@aufadepot.com', $staff->fresh()?->email);
+        $this->assertDatabaseHas('pelanggan', ['google_id' => 'google-id-staf']);
     }
 
-    public function test_google_callback_handles_oauth_exception(): void
+    public function test_invalid_oauth_state_is_rejected_without_stateless_fallback(): void
     {
         $provider = Mockery::mock(SocialiteProvider::class);
-        $provider->shouldReceive('user')->andThrow(new Exception('OAuth failed'));
+        $provider->shouldReceive('user')->once()->andThrow(new InvalidStateException);
+        $provider->shouldNotReceive('stateless');
+        Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
+
+        $this->get(route('auth.google.callback'))
+            ->assertRedirect(route('customer.login'))
+            ->assertSessionHasErrors(['phone' => 'Sesi masuk Google sudah kedaluwarsa. Silakan coba lagi.']);
+
+        $this->assertGuest('pelanggan');
+        $this->assertDatabaseCount('pelanggan', 0);
+    }
+
+    public function test_oauth_error_details_are_not_shown_to_customer(): void
+    {
+        $provider = Mockery::mock(SocialiteProvider::class);
+        $provider->shouldReceive('user')->andThrow(new Exception('cURL error 60: SSL certificate problem'));
         Socialite::shouldReceive('driver')->with('google')->andReturn($provider);
 
         $response = $this->get(route('auth.google.callback'));
 
         $response->assertRedirect(route('customer.login'))
-            ->assertSessionHasErrors(['phone']);
+            ->assertSessionHasErrors(['phone' => 'Gagal masuk dengan akun Google. Silakan coba lagi.']);
 
-        $this->assertGuest();
+        $this->followRedirects($response)->assertDontSee('cURL error 60');
+        $this->assertGuest('pelanggan');
     }
 
     private function mockGoogleUser(string $id, string $email, string $name): void

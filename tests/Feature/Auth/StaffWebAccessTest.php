@@ -13,8 +13,6 @@ class StaffWebAccessTest extends TestCase
 
     private const PESAN_UMUM = 'Email atau kata sandi salah.';
 
-    private const PESAN_ANDROID = 'Akun ini tidak memiliki akses ke website admin. Gunakan aplikasi Android SIGALON.';
-
     public function test_super_admin_can_log_in(): void
     {
         $user = User::factory()->superAdmin()->create();
@@ -37,24 +35,30 @@ class StaffWebAccessTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_kasir_is_rejected_and_pointed_to_android_app(): void
+    public function test_kasir_can_log_in(): void
     {
         $user = User::factory()->kasir()->create();
 
         $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
-            ->assertSessionHasErrors(['email' => self::PESAN_ANDROID]);
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('dashboard', absolute: false));
 
-        $this->assertGuest();
+        $this->assertAuthenticatedAs($user);
     }
 
-    public function test_kurir_is_rejected_and_pointed_to_android_app(): void
+    public function test_kurir_is_redirected_to_access_denied_page(): void
     {
         $user = User::factory()->kurir()->create();
 
         $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
-            ->assertSessionHasErrors(['email' => self::PESAN_ANDROID]);
+            ->assertRedirect(route('akses-ditolak'));
 
         $this->assertGuest();
+
+        $this->get(route('akses-ditolak'))
+            ->assertForbidden()
+            ->assertSee('Anda tidak memiliki akses ke halaman ini')
+            ->assertSee('Kurir menggunakan aplikasi Android SIGALON.');
     }
 
     public function test_inactive_account_gets_the_generic_message(): void
@@ -67,9 +71,9 @@ class StaffWebAccessTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_inactive_kasir_does_not_reveal_its_role(): void
+    public function test_inactive_kurir_does_not_reveal_its_role(): void
     {
-        $user = User::factory()->kasir()->inactive()->create();
+        $user = User::factory()->kurir()->inactive()->create();
 
         $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
             ->assertSessionHasErrors(['email' => self::PESAN_UMUM]);
@@ -115,13 +119,21 @@ class StaffWebAccessTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_kasir_session_is_logged_out_when_visiting_admin_pages(): void
+    public function test_kasir_without_cabang_is_rejected(): void
     {
-        $this->actingAs(User::factory()->kasir()->create());
+        $user = User::factory()->kasir()->create(['cabang_id' => null]);
 
-        $this->get(route('dashboard'))
-            ->assertRedirect(route('login'))
-            ->assertSessionHas('status', 'Sesi Anda telah berakhir. Silakan masuk kembali.');
+        $this->post(route('login.store'), ['email' => $user->email, 'password' => 'password'])
+            ->assertSessionHasErrors(['email' => self::PESAN_UMUM]);
+
+        $this->assertGuest();
+    }
+
+    public function test_kurir_session_is_sent_to_access_denied_page(): void
+    {
+        $this->actingAs(User::factory()->kurir()->create());
+
+        $this->get(route('dashboard'))->assertRedirect(route('akses-ditolak'));
 
         $this->assertGuest();
     }

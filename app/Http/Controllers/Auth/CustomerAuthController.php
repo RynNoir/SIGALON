@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Enums\Role;
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Pelanggan;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,9 +20,7 @@ class CustomerAuthController extends Controller
      */
     public function showLoginForm(): View|RedirectResponse
     {
-        $user = Auth::guard('web')->user();
-
-        if ($user instanceof User && $user->isPelanggan()) {
+        if (Auth::guard('pelanggan')->check()) {
             return redirect()->route('home');
         }
 
@@ -49,8 +46,7 @@ class CustomerAuthController extends Controller
             'password.required' => __('Kata sandi wajib diisi.'),
         ]);
 
-        $rawPhone = $request->string('phone')->toString();
-        $normalizedPhone = $this->normalizePhoneNumber($rawPhone);
+        $normalizedPhone = $this->normalizePhoneNumber($request->string('phone')->toString());
         $throttleKey = Str::transliterate('customer_login|'.$normalizedPhone.'|'.$request->ip());
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
@@ -58,35 +54,19 @@ class CustomerAuthController extends Controller
             abort(429, __('Terlalu banyak percobaan masuk. Silakan coba lagi dalam :seconds detik.', ['seconds' => $seconds]));
         }
 
-        $user = User::where('phone', $normalizedPhone)->first();
+        $pelanggan = Pelanggan::where('no_hp', $normalizedPhone)->first();
 
-        if (! $user || ! Hash::check($request->string('password')->toString(), (string) $user->password)) {
+        if (! $pelanggan || ! Hash::check($request->string('password')->toString(), (string) $pelanggan->password)) {
             RateLimiter::hit($throttleKey, 60);
 
             throw ValidationException::withMessages([
                 'phone' => [__('Nomor HP atau kata sandi salah.')],
-            ]);
-        }
-
-        if (! $user->is_active) {
-            RateLimiter::hit($throttleKey, 60);
-
-            throw ValidationException::withMessages([
-                'phone' => [__('Nomor HP atau kata sandi salah.')],
-            ]);
-        }
-
-        if (! $user->isPelanggan()) {
-            RateLimiter::hit($throttleKey, 60);
-
-            throw ValidationException::withMessages([
-                'phone' => [__('Akun staf tidak dapat masuk di sini. Silakan masuk melalui portal staf di /login.')],
             ]);
         }
 
         RateLimiter::clear($throttleKey);
 
-        Auth::guard('web')->login($user, $request->boolean('remember'));
+        Auth::guard('pelanggan')->login($pelanggan, $request->boolean('remember'));
         $request->session()->regenerate();
 
         return redirect()->intended(route('home'));
@@ -112,22 +92,19 @@ class CustomerAuthController extends Controller
 
         $normalizedPhone = $this->normalizePhoneNumber($request->string('phone')->toString());
 
-        if (User::where('phone', $normalizedPhone)->exists()) {
+        if (Pelanggan::where('no_hp', $normalizedPhone)->exists()) {
             throw ValidationException::withMessages([
-                'phone' => [__('Nomor HP ini sudah digunakan.')],
+                'phone' => [__('Nomor sudah terdaftar, silakan masuk dengan nomor HP atau hubungi depot.')],
             ]);
         }
 
-        $user = new User;
-        $user->name = $request->string('name')->toString();
-        $user->phone = $normalizedPhone;
-        $user->password = Hash::make($request->string('password')->toString());
-        $user->role = Role::Pelanggan;
-        $user->is_active = true;
-        $user->cabang_id = null;
-        $user->save();
+        $pelanggan = new Pelanggan;
+        $pelanggan->nama = $request->string('name')->toString();
+        $pelanggan->no_hp = $normalizedPhone;
+        $pelanggan->password = $request->string('password')->toString();
+        $pelanggan->save();
 
-        Auth::guard('web')->login($user);
+        Auth::guard('pelanggan')->login($pelanggan);
         $request->session()->regenerate();
 
         return redirect()->route('home')->with('status', __('Pendaftaran berhasil. Selamat datang di SIGALON!'));
@@ -138,7 +115,7 @@ class CustomerAuthController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
-        Auth::guard('web')->logout();
+        Auth::guard('pelanggan')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

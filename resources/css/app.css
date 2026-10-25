@@ -11,26 +11,30 @@
 @theme {
     --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
-    /* Aqua Professional — sumber kebenaran: docs/DESIGN_SYSTEM.md */
-    --color-primary: #00647C;
-    --color-primary-bright: #007F9D;   /* item sidebar aktif, hover */
-    --color-primary-soft: #E2E7FF;     /* tombol sekunder, kotak ikon */
-    --color-ink: #131B2E;
-    --color-muted: #5B666B;            /* template #6E797E digelapkan agar lulus 4.5:1 */
-    --color-surface: #FAF8FF;
-    --color-surface-low: #F2F3FF;
-    --color-line: #E2E7FF;
-    --color-outline: #6E797E;
-    --color-info: #275C81;
-    --color-info-soft: #D6EBFF;
-    --color-success: #047857;
+    /* Aqua Professional (PRD v1.2 §11) — sumber kebenaran: docs/DESIGN_SYSTEM.md.
+       Nilai bertanda * digelapkan dari palet PRD agar teks lulus kontras WCAG AA 4.5:1. */
+    --color-brand: #0891B2;            /* PRD Primary Cyan: ikon, garis, fokus, marker; bukan teks kecil */
+    --color-brand-bright: #22D3EE;     /* PRD Bright Cyan Accent: aksen dekoratif seperlunya */
+    --color-primary: #0E7490;          /* * tombol utama, tautan, angka penting (5.36:1 pada putih) */
+    --color-primary-strong: #155E75;   /* * hover tombol utama, item sidebar aktif */
+    --color-primary-soft: #CFFAFE;     /* PRD Light Cyan: tombol sekunder, kotak ikon, highlight */
+    --color-deep: #0C4A6E;             /* PRD Deep Blue: judul dan navigasi penting */
+    --color-ink: #0F172A;              /* PRD Primary Text */
+    --color-muted: #5B6779;            /* * PRD Secondary Text #64748B digelapkan */
+    --color-surface: #F0F9FF;          /* PRD Ice Blue Background */
+    --color-surface-low: #E0F2FE;      /* header tabel, panel di dalam kartu */
+    --color-line: #E2E8F0;             /* PRD Border */
+    --color-outline: #64748B;          /* border elemen interaktif (≥3:1) */
+    --color-info: #1D4ED8;             /* * PRD Info #2563EB */
+    --color-info-soft: #DBEAFE;
+    --color-success: #15803D;          /* * PRD Success #16A34A */
     --color-success-soft: #DCFCE7;
-    --color-warning: #92400E;
+    --color-warning: #B45309;          /* * PRD Warning #D97706 */
     --color-warning-soft: #FEF3C7;
-    --color-danger: #BA1A1A;
-    --color-danger-soft: #FFF0EF;
+    --color-danger: #B91C1C;           /* * PRD Error #DC2626 */
+    --color-danger-soft: #FEE2E2;
 
-    --shadow-card: 0 1px 2px rgb(19 27 46 / 0.04), 0 4px 16px rgb(19 27 46 / 0.05);
+    --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 4px 16px rgb(15 23 42 / 0.05);
 
     --color-zinc-50: #fafafa;
     --color-zinc-100: #f5f5f5;

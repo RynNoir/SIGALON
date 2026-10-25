@@ -242,7 +242,7 @@ Arah visual: **Aqua Professional** — bersih, modern, profesional, dengan warna
 | Border | `#E2E8F0` | Garis pembatas |
 | Success / Warning / Error / Info | `#16A34A` / `#D97706` / `#DC2626` / `#2563EB` | Status |
 
-- `docs/DESIGN_SYSTEM.md` harus diselaraskan dengan palet di atas (palet lama `#00647C` / `#FAF8FF` tidak dipakai lagi).
+- `docs/DESIGN_SYSTEM.md` dan token di `resources/css/app.css` sudah diselaraskan dengan palet di atas (25 Okt 2026). Untuk teks dan tombol bertulisan putih, Primary Cyan, Secondary Text, Success, Warning, Error, dan Info memakai versi sedikit lebih gelap dari keluarga warna yang sama, karena nilai aslinya gagal kontras WCAG AA (§9). Nilai asli tetap dipakai untuk ikon, garis, dan aksen.
 - Font: Plus Jakarta Sans (web dan mobile). Mode tampilan: terang saja.
 - Referensi visual: `docs/design/README.md` (gambar di `docs/design/references/`) hanya untuk gaya. Fitur, harga, label, dan data di gambar yang tidak ada di PRD tidak diimplementasikan; bila bertentangan, PRD yang berlaku.
 - Admin: sidebar, ringkasan, tabel, filter, aksi cepat.

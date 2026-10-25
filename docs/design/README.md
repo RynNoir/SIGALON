@@ -4,7 +4,7 @@
 **Ditambahkan:** 19 Oktober 2026.
 
 ## Aturan pakai (wajib dibaca AI agent dan developer)
-1. Gambar di `references/` hanya menunjukkan **gaya visual dan pola tata letak**: warna, tipografi, kartu, tabel, badge, dan susunan halaman.
+1. Gambar di `references/` hanya menunjukkan **gaya visual dan pola tata letak**: tipografi, kartu, tabel, badge, dan susunan halaman. **Warna di gambar tidak dipakai lagi**; palet resmi mengikuti PRD v1.2 §11 dan `docs/DESIGN_SYSTEM.md`.
 2. **PRD (`docs/PRD.md`) selalu menang.** Fitur, angka, label, harga, atau alur di gambar yang tidak ada di PRD **tidak boleh diimplementasikan**, sekalipun terlihat di gambar.
 3. Semua angka, nama orang, alamat, nomor telepon, dan nama cabang di gambar adalah **data contoh fiktif**. Jangan disalin ke seeder, landing page, atau tes sebagai data asli.
 4. Jangan menyalin seluruh isi satu layar. Ambil hanya pola yang dibutuhkan story yang sedang dikerjakan. Hasil akhir harus lebih ringkas daripada gambar.
@@ -20,7 +20,7 @@
 | `references/03-pelanggan-pemesanan.jpg` | Website pelanggan | Sprint berikutnya (pemesanan online) | Form pesanan COD |
 | `references/04-pelanggan-status-riwayat.jpg` | Website pelanggan | Sprint berikutnya (riwayat/status) | Status pesanan dan riwayat |
 | `references/05-admin-dasbor-cabang.jpg` | Website admin | US-01 (shell admin), US-04, US-05 | Kerangka admin dan dasbor |
-| `references/06-admin-transaksi-kasir.jpg` | Lihat konflik K1 | Sprint berikutnya (walk-in) | Input transaksi walk-in |
+| `references/06-admin-transaksi-kasir.jpg` | Website Kasir (dan acuan Android) | US-09, US-24 | Input transaksi walk-in |
 | `references/07-admin-pesanan-pengantaran.jpg` | Website admin | Sprint berikutnya (COD dan penugasan) | Antrean pesanan dan penugasan kurir |
 | `references/08-admin-canvassing.jpg` | Lihat konflik K2 | Sprint berikutnya (canvassing) | Verifikasi setoran canvassing |
 | `references/09-admin-laporan.jpg` | Website admin | Sprint berikutnya (laporan) | Laporan pendapatan/pengeluaran |
@@ -29,7 +29,7 @@
 Layar manajemen armada/kendaraan dan profil multi-alamat pelanggan dari template asli **sengaja tidak disertakan** karena fiturnya tidak ada di PRD.
 
 ## Pola global yang diadopsi
-- Latar halaman `surface` keunguan sangat muda dengan **kartu putih** berradius besar dan bayangan halus, tanpa border tebal.
+- Latar halaman `surface` (Ice Blue) dengan **kartu putih** berradius besar dan bayangan halus, tanpa border tebal.
 - **Eyebrow:** label kecil huruf kapital berwarna `primary` di atas judul halaman atau seksi.
 - **Header halaman:** judul, satu kalimat deskripsi di kiri, dan maksimal 1–2 tombol aksi di kanan (aksi utama `primary`, aksi lain `primary-soft`).
 - **Kartu ringkasan (stat card):** label kecil, angka besar, keterangan satu baris, dan ikon dalam kotak `primary-soft` di kanan atas.
@@ -45,7 +45,7 @@ Layar manajemen armada/kendaraan dan profil multi-alamat pelanggan dari template
 **Ambil:**
 - Navbar: logo, Beranda, Layanan & Harga, Cara Pesan, Bantuan WhatsApp (tautan `wa.me`), Masuk/Daftar, dan tombol CTA "Pesan Air Galon".
 - Hero dengan satu CTA utama dan satu CTA sekunder.
-- Kartu harga: Walk-in Rp6.000/galon dan COD Rp7.000/galon. Kartu galon kosong baru **hanya tampil bila harganya sudah dikonfigurasi Super Admin**, ambil nilainya dari konfigurasi dan jangan hardcode.
+- Kartu harga: Walk-in Rp6.000/galon dan COD Rp7.000/galon. Semua harga, termasuk galon kosong baru, diambil dari file konfigurasi `config/sigalon.php` (PRD §6); jangan menulis angka harga langsung di view.
 - Seksi "3 langkah pemesanan" dan footer.
 
 **Tambahkan (tidak ada di gambar, tetapi wajib menurut PRD):** seksi **peta cabang Leaflet/OpenStreetMap** dengan marker (nama dan alamat saat diklik) serta atribusi OSM.
@@ -90,11 +90,11 @@ Layar manajemen armada/kendaraan dan profil multi-alamat pelanggan dari template
 
 ### 05 — Kerangka admin dan dasbor (US-01, US-04, US-05)
 **Ambil:**
-- **Sidebar:** logo, blok "Lokasi aktif" (Super Admin: pemilih cabang, Admin Cabang: label cabang tetap tanpa dropdown), dan menu dengan item aktif berlatar `primary`.
+- **Sidebar:** logo, blok "Lokasi aktif" (Super Admin: pemilih cabang; Admin Cabang dan Kasir: label cabang tetap tanpa dropdown), dan menu dengan item aktif berlatar `primary`.
 - **Topbar:** tanggal hari ini, lonceng notifikasi internal, dan profil pengguna dengan label peran.
 - Header halaman dan 3–4 stat card.
 
-**Menu sesuai PRD, ditampilkan menurut peran (diterapkan juga di backend):** Dasbor, Transaksi, Pesanan & Pengantaran, Canvassing, Pengeluaran, Laporan, Pengguna, serta Cabang dan Pengaturan Harga (khusus Super Admin). Menu untuk fitur yang belum dibangun tidak perlu ditampilkan.
+**Menu sesuai PRD, ditampilkan menurut peran (diterapkan juga di backend):** Dasbor, Transaksi, Pesanan & Pengantaran, Canvassing, Pengeluaran, Laporan, Pengguna, serta Cabang dan Gambar QR statis (khusus Super Admin). Tidak ada menu pengaturan harga (PRD §5). Menu untuk fitur yang belum dibangun tidak perlu ditampilkan.
 
 **Stat card dasbor Sprint 1:** hanya metrik yang datanya ada, yaitu jumlah transaksi dan pendapatan hari ini (yang `dibayar_pada` terisi), dengan empty state bila belum ada data.
 
@@ -103,7 +103,7 @@ Layar manajemen armada/kendaraan dan profil multi-alamat pelanggan dari template
 - Widget kasir cepat di dasbor.
 - Rincian "Galon terjual 142" yang membutuhkan data dari kanal lain yang belum ada.
 
-### 06 — Transaksi kasir (K1, sprint berikutnya)
+### 06 — Transaksi kasir (US-09 website, US-24 Android)
 **Ambil (sebagai acuan Flutter atau form walk-in):** kartu produk dengan harga, stepper jumlah, panel rincian dengan total besar, pilihan Tunai/QR, dan tombol simpan lebar dengan state loading untuk mencegah double-submit.
 
 **Jangan ambil:**
@@ -138,18 +138,18 @@ Layar manajemen armada/kendaraan dan profil multi-alamat pelanggan dari template
 
 **Aturan:** Admin Cabang hanya melihat dan mengelola Kasir/Kurir di cabangnya. Super Admin mengelola Admin Cabang.
 
-**Jangan ambil:** shift kerja, perangkat/armada, kebijakan bon, WhatsApp bot, radius dan SLA, mesin filtrasi, unduh absensi, kepala cabang, dan jam buka. Tarif walk-in dan COD **tidak bisa diubah** karena tetap menurut PRD; hanya harga galon kosong yang dikonfigurasi Super Admin.
+**Jangan ambil:** shift kerja, perangkat/armada, kebijakan bon, WhatsApp bot, radius dan SLA, mesin filtrasi, unduh absensi, kepala cabang, dan jam buka. Tidak ada pengaturan tarif di layar ini: semua harga ada di file konfigurasi (PRD §5–§6).
 
 ## Konflik dengan PRD (menunggu keputusan PO)
 
 | ID | Template | PRD saat ini | Sampai diputuskan |
 |---|---|---|---|
-| K1 | Kasir bekerja di website admin (layar 06) | Kasir memakai Android (PRD §4, §7.I) | Kasir hanya di Android. Pola layar 06 menjadi acuan Flutter. Admin/Kasir web hanya untuk input pesanan COD manual (PRD §7.D) |
+| K1 | Kasir bekerja di website (layar 06) | **Selesai (PRD v1.2):** Kasir memakai website dan Android | Pola layar 06 dipakai di website Kasir dan menjadi acuan Android |
 | K2 | Setoran canvassing diverifikasi "Admin" | Diverifikasi Kasir (PRD §6, §7.F) | Ikuti PRD: Kasir |
 | K3 | "Pesan sebagai Tamu" tanpa akun | Pelanggan login lalu memesan (PRD §4) | Tidak ada pemesanan tamu |
 | K4 | Login pelanggan tanpa Google | Google + nomor HP/password | Tampilkan keduanya |
 | K5 | Timeline "Pesanan Diterima → Filtrasi & Ozon → Dalam Perjalanan → Diterima & COD" | `diproses → dijemput → diantar → selesai` | Pakai status PRD |
-| K6 | Galon baru Rp45.000 dan transaksi gabungan | Harga dan aturan gabungan belum ditetapkan (PRD §15 no. 1–2) | Jangan hardcode; jangan gabungkan |
+| K6 | Galon baru Rp45.000 dan transaksi gabungan | **Sebagian selesai (PRD v1.2 §6):** satu transaksi satu jenis item; harga di file konfigurasi; nominal galon baru masih nilai sementara | Jangan gabungkan item; ambil harga dari `config/sigalon.php` |
 | K7 | Produk tutup galon/tisu Rp1.000 | Tidak ada di PRD | Tidak dibuat |
 | K8 | Klaim higienitas/uji lab/SNI | Tidak ada data | Jangan tampilkan klaim yang belum dikonfirmasi mitra |
 | K9 | Jam operasional, alamat, nomor WhatsApp, radius | Data mitra belum tersedia | Ambil dari data mitra/konfigurasi, bukan dari gambar |
