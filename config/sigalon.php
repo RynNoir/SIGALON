@@ -7,14 +7,17 @@ return [
     | Seeder Lokal
     |--------------------------------------------------------------------------
     |
-    | Akun Super Admin awal untuk lingkungan pengembangan. Nilai diisi di .env
-    | masing-masing developer dan tidak pernah disimpan ke repository.
+    | Akun default untuk pengembangan dan pengujian lokal: Super Admin, Admin
+    | Cabang, Kasir, dan Kurir (email ber-domain .test). Password diisi di .env
+    | masing-masing developer dan tidak pernah disimpan ke repository; jika
+    | kosong, seeder membuat password acak dan menampilkannya sekali.
+    | Akun default tidak dibuat di environment production.
     |
     */
 
     'seed' => [
-        'superadmin_email' => env('SEED_SUPERADMIN_EMAIL'),
-        'superadmin_password' => env('SEED_SUPERADMIN_PASSWORD'),
+        'superadmin_email' => env('SEED_SUPERADMIN_EMAIL', 'superadmin@sigalon.test'),
+        'default_password' => env('SEED_DEFAULT_PASSWORD', env('SEED_SUPERADMIN_PASSWORD')),
     ],
 
     /*
