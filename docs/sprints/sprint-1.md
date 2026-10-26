@@ -352,6 +352,39 @@ Tambahkan catatan dengan format:
   - Di data nyata dasbor masih kosong sampai pencatatan transaksi Sprint 2 (US-09–US-11) selesai.
 - **Catatan untuk US-05 (Velisa):** pakai `Transaksi::ringkasanPerCabangDanKanal($dari, $sampai, $user->cabang_id)` dan ganti blok placeholder di `⚡dashboard.blade.php` (cabang `@if ($this->ringkasan === null)`). Jangan pernah memanggilnya tanpa `cabang_id` untuk peran selain Super Admin.
 - **Reviewer:** belum ada
+### US-06 — Data cabang dan akun Admin Cabang
+- **Tanggal:** 25 Oktober 2026
+- **Story/Task:** US-06 (task 13–15), branch `feature/US-06-super-admin-mengelola-data-cabang-dan-akun-admin-cabang`
+- **Dikerjakan oleh:** Shalwa (PIC) dengan bantuan AI (Antigravity)
+- **Keputusan yang dipakai (disetujui PO):**
+  - Reset password Admin Cabang dilakukan langsung oleh Super Admin dengan password baru minimal 8 karakter; password di-hash.
+  - Validasi koordinat menggunakan `nullable|numeric` untuk latitude dan longitude.
+  - Status aktif/nonaktif cabang ditampilkan di daftar, tanpa fitur toggle status cabang.
+  - UI menggunakan dua halaman terpisah: Kelola Cabang (`/admin/cabang`) dan Kelola Admin Cabang (`/admin/admin-cabang`).
+  - Akun tidak dihapus, hanya dinonaktifkan (`is_active`).
+- **Perubahan:**
+  - **Controllers:** `CabangController` (index, create, store, edit, update) dan `AdminCabangController` (index, create, store, edit, update, toggleActive, showResetPassword, resetPassword).
+  - **Views:** 7 file view terpisah di `resources/views/pages/admin/` (`cabang/index`, `cabang/create`, `cabang/edit`, `admin-cabang/index`, `admin-cabang/create`, `admin-cabang/edit`, `admin-cabang/reset-password`).
+  - **Routes:** Route resource dan custom endpoints di dalam group middleware `auth` dan prefix `admin` pada `routes/web.php`.
+  - **Sidebar:** Item menu `Kelola Cabang` dan `Admin Cabang` di `resources/views/layouts/app/sidebar.blade.php`, khusus untuk Super Admin.
+  - **Tests:** `tests/Feature/Admin/CabangManagementTest.php` dan `tests/Feature/Admin/AdminCabangManagementTest.php`.
+- **Acceptance criteria yang lulus (diuji otomatis):**
+  - Super Admin dapat melihat daftar cabang, menambah cabang baru, dan mengubah data cabang (nama, alamat, latitude, longitude).
+  - Koordinat latitude dan longitude tersimpan dengan benar dan validasi numeric/nullable terpenuhi.
+  - Nama dan alamat cabang di-escape di Blade untuk mencegah XSS.
+  - Super Admin dapat melihat daftar Admin Cabang, membuat akun baru (role terisi `admin_cabang`, terikat `cabang_id`, password ter-hash).
+  - Super Admin dapat memperbarui nama, email, dan cabang penempatan Admin Cabang.
+  - Super Admin dapat menonaktifkan dan mengaktifkan akun Admin Cabang; akun tidak dihapus dari database.
+  - Super Admin dapat mereset kata sandi Admin Cabang secara langsung dengan konfirmasi; kata sandi baru tersimpan dalam bentuk hash dan dapat dipakai login.
+  - Otorisasi server-side: hanya Super Admin yang diizinkan mengakses seluruh endpoint kelola cabang dan Admin Cabang; Admin Cabang dan Kasir menerima respons 403 Forbidden; tamu diarahkan ke `/login`.
+- **Tes dan hasil:**
+  - `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 129/129 lulus (488 assertions).
+  - `npm run build` berhasil.
+- **Yang belum selesai / blocker:**
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Verifikasi tampilan visual manual di browser belum dilakukan.
+- **Catatan untuk US-07 (Nurul):** Gunakan pola controller dan view dari US-06 ini untuk mengelola akun Kasir dan Kurir. Pastikan otorisasi membatasi Admin Cabang hanya dapat mengelola staf pada `cabang_id` miliknya sendiri.
+- **Reviewer:** belum ada
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):** lihat laporan handoff
 

@@ -144,33 +144,17 @@ new #[Title('Dasbor')] class extends Component {
             $cabang = $currentUser?->cabang;
             $canOpen = $currentUser?->role === \App\Enums\Role::AdminCabang && $cabang !== null && $cabang->is_active;
         @endphp
-        <div class="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-card md:flex-row md:items-center md:justify-between" data-test="dashboard-cabang-placeholder">
-            <div class="flex flex-col gap-2">
+        @if ($canOpen)
+            <livewire:pages::dashboard-cabang :cabang="$cabang" />
+        @else
+            <div class="flex flex-col gap-2 rounded-2xl bg-white p-6 shadow-card" data-test="dashboard-cabang-placeholder">
                 <span class="text-xs font-semibold uppercase tracking-wider text-primary">{{ __('Dasbor') }}</span>
                 <flux:heading size="xl" level="1" class="text-deep!">{{ __('Ringkasan cabang Anda') }}</flux:heading>
-                @if ($canOpen)
-                    <flux:text class="text-muted!">
-                        {{ __('Ringkasan transaksi cabang dapat diakses melalui tombol di sebelah kanan.') }}
-                    </flux:text>
-                @else
-                    <flux:text class="text-muted!" data-test="pesan-cabang-tidak-aktif">
-                        {{ __('Akun belum terhubung ke cabang aktif atau tidak memiliki akses ringkasan dasbor.') }}
-                    </flux:text>
-                @endif
+                <flux:text class="text-muted!" data-test="pesan-cabang-tidak-aktif">
+                    {{ __('Akun belum terhubung ke cabang aktif atau tidak memiliki akses ringkasan dasbor.') }}
+                </flux:text>
             </div>
-
-            @if ($canOpen)
-                <flux:button
-                    :href="route('dashboard.cabang', $cabang)"
-                    icon="arrow-top-right-on-square"
-                    variant="primary"
-                    wire:navigate
-                    data-test="buka-dashboard-cabang"
-                >
-                    {{ __('Buka dashboard cabang') }}
-                </flux:button>
-            @endif
-        </div>
+        @endif
     @else
         @php($ringkasan = $this->ringkasan)
 

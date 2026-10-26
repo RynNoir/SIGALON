@@ -23,9 +23,9 @@ class AdminCabangDashboardTest extends TestCase
         config(['sigalon.harga.walk_in' => 6000, 'sigalon.harga.cod' => 7000]);
     }
 
-    // ─── Dashboard /dashboard (placeholder) ───────────────────────────────
+    // ─── Dashboard /dashboard ─────────────────────────────────────────────
 
-    public function test_admin_cabang_dengan_cabang_aktif_melihat_tautan_buka_dashboard(): void
+    public function test_admin_cabang_dengan_cabang_aktif_langsung_melihat_dashboard_cabang(): void
     {
         $cabang = Cabang::factory()->create(['is_active' => true]);
         $admin = User::factory()->adminCabang()->for($cabang)->create();
@@ -34,9 +34,10 @@ class AdminCabangDashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee('Ringkasan cabang Anda')
-            ->assertSee('Buka dashboard cabang')
-            ->assertSeeHtml('data-test="buka-dashboard-cabang"')
-            ->assertDontSeeHtml('data-test="pesan-cabang-tidak-aktif"');
+            ->assertSee($cabang->nama)
+            ->assertSeeHtml('data-test="dashboard-cabang-card"')
+            ->assertDontSeeHtml('data-test="pesan-cabang-tidak-aktif"')
+            ->assertDontSee('Buka dashboard cabang');
     }
 
     public function test_admin_cabang_tanpa_cabang_melihat_pesan_aman_tanpa_tautan(): void
@@ -54,11 +55,10 @@ class AdminCabangDashboardTest extends TestCase
             ->assertRedirect(route('login'));
     }
 
-    public function test_admin_cabang_dengan_cabang_nonaktif_melihat_pesan_aman_tanpa_tautan(): void
+    public function test_admin_cabang_dengan_cabang_nonaktif_melihat_pesan_aman_tanpa_dashboard(): void
     {
         // canAccessStaffWeb() hanya memeriksa cabang_id !== null, bukan is_active cabang.
-        // Sehingga admin dengan cabang nonaktif BISA masuk ke /dashboard dan melihat placeholder.
-        // Placeholder harus menampilkan pesan aman (tanpa tautan) karena cabang tidak aktif.
+        // Sehingga admin dengan cabang nonaktif BISA masuk ke /dashboard dan melihat pesan aman.
         $cabangNonaktif = Cabang::factory()->create(['is_active' => false]);
         $admin = User::factory()->adminCabang()->for($cabangNonaktif)->create();
 
@@ -67,10 +67,10 @@ class AdminCabangDashboardTest extends TestCase
             ->assertOk()
             ->assertSee('Ringkasan cabang Anda')
             ->assertSeeHtml('data-test="pesan-cabang-tidak-aktif"')
-            ->assertDontSeeHtml('data-test="buka-dashboard-cabang"');
+            ->assertDontSeeHtml('data-test="dashboard-cabang-card"');
     }
 
-    public function test_kasir_tidak_melihat_tautan_buka_dashboard_cabang(): void
+    public function test_kasir_tidak_melihat_dashboard_cabang(): void
     {
         $cabang = Cabang::factory()->create(['is_active' => true]);
         $kasir = User::factory()->kasir()->for($cabang)->create();
@@ -79,8 +79,9 @@ class AdminCabangDashboardTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee('Ringkasan cabang Anda')
-            ->assertDontSee('Buka dashboard cabang')
-            ->assertDontSeeHtml('data-test="buka-dashboard-cabang"');
+            ->assertSeeHtml('data-test="pesan-cabang-tidak-aktif"')
+            ->assertDontSeeHtml('data-test="dashboard-cabang-card"')
+            ->assertDontSee('Buka dashboard cabang');
     }
 
     // ─── Dashboard /dashboard/cabang/{cabang} — Admin Cabang ────────────
