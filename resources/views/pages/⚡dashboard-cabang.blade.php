@@ -421,7 +421,7 @@ new #[Title('Dasbor Cabang')] class extends Component {
                             </div>
                             <div>
                                 <div class="text-xs text-muted">{{ __('Kurir Canvasser:') }} <strong class="text-ink">Joko Santoso</strong></div>
-                                <div class="text-xs text-muted mt-0.5">Bawa: 30 Galon · Terjual: 26 Galon · Sisa: 4 Galon Kosong</div>
+                                <div class="text-xs text-muted mt-0.5">{{ __('Galon Terjual: 26 Galon (Isi Ulang)') }}</div>
                             </div>
                         </div>
                         <div class="sm:text-right">
@@ -431,7 +431,7 @@ new #[Title('Dasbor Cabang')] class extends Component {
                     </div>
 
                     <div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted">
-                        <span>{{ __('Pastikan jumlah fisik galon kosong di armada sesuai sebelum konfirmasi.') }}</span>
+                        <span>{{ __('Pastikan jumlah uang setoran fisik sesuai dengan total galon terjual sebelum konfirmasi.') }}</span>
                         <flux:button size="sm" variant="primary" icon="check" class="shrink-0">
                             {{ __('Verifikasi & Masukkan Kas') }}
                         </flux:button>
