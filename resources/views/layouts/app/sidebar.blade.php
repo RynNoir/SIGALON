@@ -54,6 +54,18 @@
                         {{ __('Admin Cabang') }}
                     </flux:sidebar.item>
                 @endif
+
+                @if ($currentUser->isAdminCabang())
+                    <flux:sidebar.item
+                        icon="users"
+                        :href="route('cabang.staf.index')"
+                        :current="request()->routeIs('cabang.staf.*')"
+                        class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
+                        wire:navigate
+                    >
+                        {{ __('Kelola Staf') }}
+                    </flux:sidebar.item>
+                @endif
             </flux:sidebar.nav>
 
             <flux:spacer />
