@@ -22,6 +22,7 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', 'pages::dashboard')->name('dashboard');
+    Route::livewire('dashboard/cabang/{cabang}', 'pages::dashboard-cabang')->name('dashboard.cabang');
 
     // [US-06] Super Admin: kelola data cabang dan akun Admin Cabang
     Route::prefix('admin')->name('admin.')->group(function () {

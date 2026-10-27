@@ -139,11 +139,22 @@ new #[Title('Dasbor')] class extends Component {
 
 <section class="flex w-full flex-col gap-6">
     @if ($this->ringkasan === null)
-        <div class="flex flex-col gap-2 rounded-2xl bg-white p-6 shadow-card" data-test="dashboard-cabang-placeholder">
-            <span class="text-xs font-semibold uppercase tracking-wider text-primary">{{ __('Dasbor') }}</span>
-            <flux:heading size="xl" level="1" class="text-deep!">{{ __('Ringkasan cabang Anda') }}</flux:heading>
-            <flux:text class="text-muted!">{{ __('Ringkasan transaksi cabang sedang disiapkan dan akan tampil di halaman ini.') }}</flux:text>
-        </div>
+        @php
+            $currentUser = auth()->user();
+            $cabang = $currentUser?->cabang;
+            $canOpen = $currentUser?->role === \App\Enums\Role::AdminCabang && $cabang !== null && $cabang->is_active;
+        @endphp
+        @if ($canOpen)
+            <livewire:pages::dashboard-cabang :cabang="$cabang" />
+        @else
+            <div class="flex flex-col gap-2 rounded-2xl bg-white p-6 shadow-card" data-test="dashboard-cabang-placeholder">
+                <span class="text-xs font-semibold uppercase tracking-wider text-primary">{{ __('Dasbor') }}</span>
+                <flux:heading size="xl" level="1" class="text-deep!">{{ __('Ringkasan cabang Anda') }}</flux:heading>
+                <flux:text class="text-muted!" data-test="pesan-cabang-tidak-aktif">
+                    {{ __('Akun belum terhubung ke cabang aktif atau tidak memiliki akses ringkasan dasbor.') }}
+                </flux:text>
+            </div>
+        @endif
     @else
         @php($ringkasan = $this->ringkasan)
 
