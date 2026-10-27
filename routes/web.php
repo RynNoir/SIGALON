@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AdminCabangController;
 use App\Http\Controllers\Admin\CabangController;
 use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Cabang\StafController;
 use App\Http\Controllers\LandingPageController;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +40,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::post('admin-cabang/{user}/reset-password', [AdminCabangController::class, 'resetPassword'])
             ->name('admin-cabang.reset-password.store');
+    });
+
+    // [US-07] Admin Cabang: kelola akun Kasir & Kurir
+    Route::prefix('cabang')->name('cabang.')->group(function () {
+        Route::resource('staf', StafController::class)
+            ->parameters(['staf' => 'user'])
+            ->only(['index', 'create', 'store', 'edit', 'update']);
+
+        Route::post('staf/{user}/toggle-active', [StafController::class, 'toggleActive'])
+            ->name('staf.toggle-active');
+
+        Route::get('staf/{user}/reset-password', [StafController::class, 'showResetPassword'])
+            ->name('staf.reset-password');
+
+        Route::post('staf/{user}/reset-password', [StafController::class, 'resetPassword'])
+            ->name('staf.reset-password.store');
     });
 });
 

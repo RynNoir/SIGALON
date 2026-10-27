@@ -388,6 +388,45 @@ Tambahkan catatan dengan format:
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):** lihat laporan handoff
 
+### US-07 — Akun Kasir dan Kurir
+- **Tanggal:** 25 Oktober 2026
+- **Story/Task:** US-07 (task 16–17), branch `feature/US-07-kelola-kasir-kurir`
+- **Dikerjakan oleh:** Nurul (PIC) dengan bantuan AI (Antigravity)
+- **Keputusan yang dipakai (mengikuti pola US-06 & PRD):**
+  - Admin Cabang hanya dapat mengelola staf pada cabang miliknya sendiri (`cabang_id` terikat otomatis pada saat create dan divalidasi server-side).
+  - Role yang dapat dibuat dan diubah hanya Kasir (`kasir`) dan Kurir (`kurir`). Upaya memasukkan role lain ditolak (422).
+  - Akun tidak dihapus, hanya dinonaktifkan (`is_active`). Sesi staf yang dinonaktifkan ditolak oleh middleware web.
+  - Reset kata sandi staf oleh Admin Cabang disediakan langsung tanpa via email (minimal 8 karakter, di-hash).
+  - UI tabel menampilkan nama, inisial avatar, email, badge peran (Kasir/Kurir), status keaktifan, dan tombol aksi (Ubah, Reset Sandi, Toggle Aktif).
+- **Perubahan:**
+  - **Model:** Penambahan helper `isAdminCabang(): bool` di `app/Models/User.php`.
+  - **Controller:** `App\Http\Controllers\Cabang\StafController` dengan proteksi otorisasi Admin Cabang dan penegakan isolasi cabang pada setiap aksi.
+  - **Views:** 4 file view di `resources/views/pages/cabang/staf/` (`index.blade.php`, `create.blade.php`, `edit.blade.php`, `reset-password.blade.php`).
+  - **Routes:** Route resource dan endpoint toggle-active / reset-password di dalam prefix `cabang` pada `routes/web.php`.
+  - **Sidebar:** Item menu `Kelola Staf` di `resources/views/layouts/app/sidebar.blade.php` khusus untuk peran Admin Cabang.
+  - **Tests:** `tests/Feature/Cabang/StafManagementTest.php` (24 skenario pengujian komprehensif).
+- **Acceptance criteria yang lulus (diuji otomatis):**
+  - Admin Cabang dapat melihat daftar Kasir dan Kurir di cabangnya sendiri.
+  - Admin Cabang tidak dapat melihat staf dari cabang lain, maupun akun Admin Cabang lain dan Super Admin.
+  - Admin Cabang dapat menambah akun Kasir dan Kurir baru (tersimpan dengan `cabang_id` admin, `is_active = true`, password ter-hash).
+  - Admin Cabang tidak dapat membuat akun dengan role selain Kasir dan Kurir.
+  - Admin Cabang dapat mengubah nama, email, dan role staf di cabangnya.
+  - Admin Cabang tidak dapat melihat, mengubah, menonaktifkan, atau mereset sandi staf cabang lain (403 Forbidden).
+  - Admin Cabang dapat menonaktifkan dan mengaktifkan kembali akun staf cabangnya tanpa menghapus data.
+  - Admin Cabang dapat mereset kata sandi staf cabangnya.
+  - Otorisasi server-side: Kasir dan Super Admin ditolak 403; Kurir dialihkan ke `/akses-ditolak`; Admin Cabang tanpa cabang dialihkan ke `/login`.
+  - Karakter khusus / XSS pada nama staf di-escape dengan aman.
+- **Tes dan hasil:**
+  - `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 153/153 lulus (586 assertions).
+  - `npm run build` berhasil.
+- **Yang belum selesai / blocker:**
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Verifikasi tampilan visual manual di browser belum dilakukan.
+- **Catatan untuk PIC story berikutnya (Sprint 2 / US-09–US-12):** Akun Kasir dan Kurir kini sudah dapat dibuat oleh masing-masing Admin Cabang untuk keperluan pengujian transaksi kasir dan penugasan kurir.
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):** lihat laporan handoff
+
 ## Keputusan backlog Sprint 1
 Butir lama sudah diselesaikan lewat J-01 final dan PRD v1.2:
 1. Scope Sprint 1 adalah US-01 sampai US-07 (24 SP).
