@@ -132,9 +132,71 @@
                         <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                             <flux:avatar :name="$currentUser->name" :initials="$currentUser->initials()" />
 
-                            <div class="grid flex-1 text-start text-sm leading-tight">
-                                <flux:heading class="truncate">{{ $currentUser->name }}</flux:heading>
-                                <flux:text class="truncate">{{ $currentUser->role->label() }}</flux:text>
+                @if ($currentUser->isSuperAdmin())
+                    <flux:sidebar.item
+                        icon="building-office-2"
+                        :href="route('admin.cabang.index')"
+                        :current="request()->routeIs('admin.cabang.*')"
+                        class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
+                        wire:navigate
+                    >
+                        {{ __('Kelola Cabang') }}
+                    </flux:sidebar.item>
+
+                    <flux:sidebar.item
+                        icon="users"
+                        :href="route('admin.admin-cabang.index')"
+                        :current="request()->routeIs('admin.admin-cabang.*')"
+                        class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
+                        wire:navigate
+                    >
+                        {{ __('Admin Cabang') }}
+                    </flux:sidebar.item>
+                @endif
+
+                @if ($currentUser->isAdminCabang())
+                    <flux:sidebar.item
+                        icon="users"
+                        :href="route('cabang.staf.index')"
+                        :current="request()->routeIs('cabang.staf.*')"
+                        class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
+                        wire:navigate
+                    >
+                        {{ __('Kelola Staf') }}
+                    </flux:sidebar.item>
+                @endif
+            </flux:sidebar.nav>
+
+            <flux:spacer />
+
+            <x-desktop-user-menu class="hidden lg:block" :name="$currentUser->name" />
+        </flux:sidebar>
+
+        <!-- Mobile User Menu -->
+        <flux:header class="border-b border-line bg-white lg:hidden">
+            <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
+
+            <flux:spacer />
+
+            <flux:dropdown position="top" align="end">
+                <flux:profile
+                    :initials="$currentUser->initials()"
+                    icon-trailing="chevron-down"
+                />
+
+                <flux:menu>
+                    <flux:menu.radio.group>
+                        <div class="p-0 text-sm font-normal">
+                            <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+                                <flux:avatar
+                                    :name="$currentUser->name"
+                                    :initials="$currentUser->initials()"
+                                />
+
+                                <div class="grid flex-1 text-start text-sm leading-tight">
+                                    <flux:heading class="truncate">{{ $currentUser->name }}</flux:heading>
+                                    <flux:text class="truncate">{{ $currentUser->role->label() }}</flux:text>
+                                </div>
                             </div>
                         </div>
                     </div>

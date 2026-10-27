@@ -65,6 +65,11 @@ class User extends Authenticatable
         return $this->role === Role::SuperAdmin;
     }
 
+    public function isAdminCabang(): bool
+    {
+        return $this->role === Role::AdminCabang;
+    }
+
     /**
      * Akun boleh memakai website admin: aktif, perannya web, dan sudah terikat cabang bila perannya mewajibkan.
      */
