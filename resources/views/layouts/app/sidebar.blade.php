@@ -62,6 +62,15 @@
                     {{ __('Admin Cabang') }}
                 </flux:sidebar.item>
             @endif
+
+            @if ($currentUser->role === \App\Enums\Role::Kasir)
+                <flux:sidebar.item icon="banknotes" :href="route('kasir.transaksi')"
+                    :current="request()->routeIs('kasir.transaksi*')"
+                    class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
+                    wire:navigate>
+                    {{ __('Transaksi Walk-in') }}
+                </flux:sidebar.item>
+            @endif
         </flux:sidebar.nav>
 
         <flux:spacer />

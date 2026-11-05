@@ -58,6 +58,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('staf/{user}/reset-password', [StafController::class, 'resetPassword'])
             ->name('staf.reset-password.store');
     });
+
+    // [US-09] Kasir: input transaksi walk-in & galon baru
+    Route::livewire('kasir/transaksi', 'pages::kasir.transaksi')->name('kasir.transaksi');
 });
 
 require __DIR__.'/settings.php';

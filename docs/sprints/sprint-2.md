@@ -112,14 +112,37 @@ Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/fea
 
 ## Catatan status per story
 
-Tambahkan catatan dengan format:
-- **Tanggal:**
-- **Story/Task:**
-- **Dikerjakan oleh:**
+### US-09: Input transaksi walk-in & galon baru oleh Kasir
+- **Tanggal:** 5 November 2026
+- **Story/Task:** US-09 (Task 4 & Task 5)
+- **Dikerjakan oleh:** Fikri (PIC) & Velisa
 - **Perubahan:**
+  - Menambahkan halaman Livewire `resources/views/pages/kasir/⚡transaksi.blade.php` untuk pencatatan transaksi walk-in & galon baru sesuai panduan visual `06-admin-transaksi-kasir.jpg` dan token warna PRD v1.2 §11 / `docs/DESIGN_SYSTEM.md`.
+  - Menghitung total harga transaksi murni di sisi server dari `config('sigalon.harga.walk_in')` dan `config('sigalon.harga.galon_baru')`, serta mengabaikan input total dan cabang dari browser.
+  - Mengisi field otomatis server: `jenis_kanal = Kanal::WalkIn`, `status = StatusTransaksi::Selesai`, `tanggal = CarbonImmutable::today()`, `dicatat_oleh = auth()->id()`, `cabang_id = auth()->user()->cabang_id`, dan tanpa data pelanggan (`pelanggan_id = null`).
+  - Menerapkan validasi ketat: `jenis_item` (enum `JenisItem`), `metode_bayar` (enum `MetodePembayaran`), dan `jumlah_galon` (integer minimal 1, maksimal 500).
+  - Otorisasi berlapis yang diulang di setiap request Livewire (`mount` dan `hydrate`): hanya Kasir dengan cabang aktif yang diizinkan; Super Admin, Admin Cabang, Kurir, Pelanggan, dan tamu ditolak; Kasir tanpa cabang atau cabang nonaktif diberikan pesan aman tanpa error 500.
+  - Mencegah double-submit dengan `wire:loading.attr="disabled"` pada tombol simpan, menampilkan konfirmasi total transaksi, dan mengosongkan/mereset form setelah tersimpan.
+  - Menambahkan route `kasir.transaksi` pada blok `// [US-09]` di `routes/web.php` dan satu item menu `Transaksi Walk-in` khusus Kasir di `resources/views/layouts/app/sidebar.blade.php`.
+  - Membuat 18 unit/feature test komprehensif di `tests/Feature/Kasir/TransaksiWalkInTest.php`.
 - **Acceptance criteria yang lulus:**
+  - Kasir memilih item (isi ulang / galon baru), jumlah, dan metode bayar (tunai / QR) [LULUS].
+  - Tanpa data pelanggan (`pelanggan_id = null`) [LULUS].
+  - Total dihitung di server dari file konfigurasi (`walk_in` Rp6.000, `galon_baru` Rp45.000 nilai sementara) [LULUS].
+  - Tersimpan sebagai kanal `walk_in` berstatus `selesai` dengan `dicatat_oleh` kasir login dan `cabang_id` kasir [LULUS].
 - **Tes dan hasil:**
+  - `php artisan test`: 195/195 tests lulus (745 assertions).
+  - `tests/Feature/Kasir/TransaksiWalkInTest.php`: 18/18 tests lulus (98 assertions).
+  - `vendor\bin\phpstan analyse --memory-limit=1G`: 0 error (passed).
+  - `vendor\bin\pint --test`: passed.
+  - `npm run build`: lulus dalam 5.14s.
 - **Yang belum selesai / blocker:**
-- **Reviewer:**
-- **Status yang diusulkan:**
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Verifikasi visual di browser kasir secara nyata.
+  - Keputusan terbuka PO: Batas atas jumlah galon per transaksi walk-in (diusulkan 500 galon).
+  - Keputusan terbuka PO: Apakah Admin Cabang atau Super Admin diizinkan melakukan input transaksi walk-in langsung (saat ini ditolak 403).
+  - Keputusan terbuka PO: Nilai pasti harga galon kosong baru dari mitra (saat ini nilai sementara Rp45.000 di `config/sigalon.php`).
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):**
+  `feat(US-09): implement walk-in and new gallon transaction input for cashier`
