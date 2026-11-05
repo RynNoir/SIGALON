@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pelanggan;
+use App\Services\CustomerPhoneService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,10 @@ use Illuminate\View\View;
 
 class CustomerAuthController extends Controller
 {
+    public function __construct(
+        protected CustomerPhoneService $phoneService
+    ) {}
+
     /**
      * Tampilkan formulir masuk dan daftar pelanggan.
      */
@@ -46,7 +51,7 @@ class CustomerAuthController extends Controller
             'password.required' => __('Kata sandi wajib diisi.'),
         ]);
 
-        $normalizedPhone = $this->normalizePhoneNumber($request->string('phone')->toString());
+        $normalizedPhone = $this->phoneService->normalize($request->string('phone')->toString());
         $throttleKey = Str::transliterate('customer_login|'.$normalizedPhone.'|'.$request->ip());
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
@@ -85,18 +90,15 @@ class CustomerAuthController extends Controller
             'name.required' => __('Nama lengkap wajib diisi.'),
             'phone.required' => __('Nomor WhatsApp / HP wajib diisi.'),
             'phone.min' => __('Nomor HP minimal terdiri dari 9 digit.'),
+            'phone.max' => __('Nomor HP maksimal terdiri dari 20 digit.'),
             'password.required' => __('Kata sandi wajib diisi.'),
             'password.min' => __('Kata sandi minimal 8 karakter.'),
             'password.confirmed' => __('Konfirmasi kata sandi tidak cocok.'),
         ]);
 
-        $normalizedPhone = $this->normalizePhoneNumber($request->string('phone')->toString());
+        $normalizedPhone = $this->phoneService->normalize($request->string('phone')->toString());
 
-        if (Pelanggan::where('no_hp', $normalizedPhone)->exists()) {
-            throw ValidationException::withMessages([
-                'phone' => [__('Nomor sudah terdaftar, silakan masuk dengan nomor HP atau hubungi depot.')],
-            ]);
-        }
+        $this->phoneService->ensurePhoneIsUnique($normalizedPhone);
 
         $pelanggan = new Pelanggan;
         $pelanggan->nama = $request->string('name')->toString();
@@ -111,6 +113,45 @@ class CustomerAuthController extends Controller
     }
 
     /**
+     * Tampilkan formulir lengkapi nomor HP untuk akun pelanggan (misalnya akun Google).
+     */
+    public function showCompletePhoneForm(): View|RedirectResponse
+    {
+        /** @var Pelanggan $pelanggan */
+        $pelanggan = Auth::guard('pelanggan')->user();
+
+        return view('pages.auth.customer-complete-phone', [
+            'pelanggan' => $pelanggan,
+        ]);
+    }
+
+    /**
+     * Simpan nomor HP pelanggan yang belum dilengkapi (Task 3 US-08).
+     */
+    public function updatePhone(Request $request): RedirectResponse
+    {
+        /** @var Pelanggan $pelanggan */
+        $pelanggan = Auth::guard('pelanggan')->user();
+
+        $request->validate([
+            'phone' => ['required', 'string', 'min:9', 'max:20'],
+        ], [
+            'phone.required' => __('Nomor WhatsApp / HP wajib diisi.'),
+            'phone.min' => __('Nomor HP minimal terdiri dari 9 digit.'),
+            'phone.max' => __('Nomor HP maksimal terdiri dari 20 digit.'),
+        ]);
+
+        $normalizedPhone = $this->phoneService->normalize($request->string('phone')->toString());
+
+        $this->phoneService->ensurePhoneIsUnique($normalizedPhone, $pelanggan->id);
+
+        $pelanggan->no_hp = $normalizedPhone;
+        $pelanggan->save();
+
+        return redirect()->route('home')->with('status', __('Nomor WhatsApp berhasil disimpan!'));
+    }
+
+    /**
      * Keluar dari sesi pelanggan.
      */
     public function logout(Request $request): RedirectResponse
@@ -120,27 +161,5 @@ class CustomerAuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect()->route('home');
-    }
-
-    /**
-     * Standarisasi nomor telepon Indonesia (e.g., 0812 -> 62812, +62812 -> 62812).
-     */
-    private function normalizePhoneNumber(string $phone): string
-    {
-        $digits = preg_replace('/[^\d]/', '', $phone) ?? '';
-
-        if (str_starts_with($digits, '0')) {
-            return '62'.substr($digits, 1);
-        }
-
-        if (str_starts_with($digits, '62')) {
-            return $digits;
-        }
-
-        if (str_starts_with($digits, '8')) {
-            return '62'.$digits;
-        }
-
-        return $digits;
     }
 }

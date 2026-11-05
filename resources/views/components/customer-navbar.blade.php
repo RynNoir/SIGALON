@@ -69,6 +69,16 @@
 
             @if($pelanggan = Auth::guard('pelanggan')->user())
                     <div class="flex items-center gap-3 text-sm">
+                        @if(! $pelanggan->no_hp)
+                            <a
+                                href="{{ route('customer.phone.edit') }}"
+                                class="inline-flex items-center gap-1.5 rounded-full bg-warning-soft px-2.5 py-1 text-xs font-semibold text-warning hover:bg-warning/20 transition"
+                                data-test="customer-complete-phone-link"
+                            >
+                                <flux:icon.exclamation-circle class="size-3.5" />
+                                <span>{{ __('Lengkapi No. HP') }}</span>
+                            </a>
+                        @endif
                         {{-- Avatar: foto Google atau inisial --}}
                         <div class="relative group">
                             @if($pelanggan->googleAvatarUrl())
@@ -193,6 +203,14 @@
             @if($pelangganMobile = Auth::guard('pelanggan')->user())
                     <div class="flex items-center justify-between pt-2">
                         <div class="flex items-center gap-2">
+                            @if(! $pelangganMobile->no_hp)
+                                <a
+                                    href="{{ route('customer.phone.edit') }}"
+                                    class="inline-flex items-center gap-1 rounded-full bg-warning-soft px-2 py-0.5 text-xs font-semibold text-warning"
+                                >
+                                    {{ __('Lengkapi No. HP') }}
+                                </a>
+                            @endif
                             @if($pelangganMobile->googleAvatarUrl())
                                 <img
                                     src="{{ $pelangganMobile->googleAvatarUrl() }}"

@@ -105,6 +105,7 @@ Diperbarui 25 Oktober 2026 dari hasil Sprint 1 (US-01–US-04).
 - **US-10, US-11:** COD berstatus awal `diproses`. COD manual mengisi `nama_pemesan`, `no_hp_pemesan`, `alamat_antar`; COD online juga mengisi `pelanggan_id` dan mengosongkan `dicatat_oleh` (ERD). Akun Google wajib melengkapi `no_hp` dan `alamat` pada pesanan pertama.
 - **US-12:** tabel RIWAYAT_STATUS belum ada. Simpan perubahan status dan riwayat dalam satu transaksi database. Pembatalan hanya dari `diproses` dan wajib alasan. Kurir yang dipilih harus aktif dan berasal dari cabang yang sama.
 - **US-10, US-11 (ditambahkan 5 Nov 2026):** setelah menyimpan pesanan COD, panggil `StatusPesananService::catatStatusAwal($pesanan, $pengubah)` dalam satu `DB::transaction` yang sama. `$pengubah` = Kasir yang login (US-10) atau pelanggan pemilik pesanan (US-11). Perhitungan harga US-09 masih ditulis di halaman Livewire-nya dan belum menjadi fungsi bersama.
+- **US-11 (ditambahkan 5 Nov 2026):** saat pelanggan akun Google melengkapi nomor HP pada pesanan pertama, gunakan `App\Services\CustomerPhoneService` (`normalize()` dan `ensurePhoneIsUnique($normalized, $pelanggan->id)`) agar validasi dan pesan penolakan duplikasi seragam persis dengan PRD §6.
 - **US-12 bagian UI (ditambahkan 5 Nov 2026):** jangan mengubah `status` atau `kurir_id` pesanan langsung. Pakai `ubahStatus()`, `batalkan()`, dan `tugaskanKurir()` dari `App\Services\StatusPesananService`. Otorisasi dan aturan transisi sudah ada di sana; tampilkan pesan dari `ValidationException`. Method mengembalikan model terbaru.
 - **US-14:** PRD melarang tabel pengaturan; sepakati lokasi file gambar QR dulu.
 - **US-15:** batasi query dengan `cabang_id` milik pengguna. Super Admin tidak termasuk peran story ini kecuali PO meminta.
@@ -181,3 +182,33 @@ Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/fea
 - **Reviewer:** belum ada
 - **Status yang diusulkan:** IN_PROGRESS
 - **Saran pesan commit (tidak dijalankan):** `feat(US-12): add status history and COD order status service`
+
+### US-08 — Registrasi & login Pelanggan dengan nomor HP dan password
+- **Tanggal:** 5 November 2026
+- **Story/Task:** US-08 task 1–3, branch `feature/US-08-registrasi-login-pelanggan`
+- **Dikerjakan oleh:** Nurul (PIC) dengan bantuan AI (Antigravity)
+- **Perubahan:**
+  - `App\Services\CustomerPhoneService`: normalisasi nomor telepon Indonesia (+62, 08, 8) dan validasi keunikan dengan pesan resmi PRD `CustomerPhoneService::DUPLICATE_PHONE_MESSAGE`.
+  - `CustomerAuthController`: integrasi `CustomerPhoneService`, penambahan method `showCompletePhoneForm()` dan `updatePhone()`, serta pembatasan rate limiting 5 percobaan gagal per IP + nomor HP.
+  - View `pages.auth.customer-complete-phone`: form Aqua Professional untuk melengkapi nomor WhatsApp bagi pelanggan yang masuk via Google atau belum memiliki nomor HP, lengkap dengan pencegahan double submit.
+  - Komponen `customer-navbar`: penambahan pill/tautan peringatan "Lengkapi No. HP" pada desktop dan mobile drawer jika pelanggan yang login belum memiliki nomor HP.
+  - Route `routes/web.php`: penambahan route `customer.phone.edit` dan `customer.phone.update` dalam grup `auth:pelanggan`.
+  - Middleware redirection di `bootstrap/app.php`: tamu yang mengakses `/pelanggan/*` otomatis diarahkan ke `route('customer.login')` (`/masuk`).
+  - Unit/Feature test komprehensif `tests/Feature/Auth/CustomerRegistrationLoginTest.php` (14 tes, 63 assertions).
+- **Acceptance criteria yang lulus:**
+  - Daftar dengan nama, nomor HP unik, dan password di-hash Bcrypt [LULUS].
+  - Login tanpa OTP dengan rate limiting (maksimal 5 percobaan salah per menit) [LULUS].
+  - Nomor yang sudah terdaftar ditolak dengan pesan: "Nomor sudah terdaftar, silakan masuk dengan nomor HP atau hubungi depot." (baik saat registrasi maupun saat akun Google melengkapi nomor HP) [LULUS].
+  - Otorisasi terpisah antara guard `pelanggan` dan staf `web` [LULUS].
+- **Tes dan hasil:**
+  - `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 268/268 tests lulus (1.033 assertions).
+  - `tests/Feature/Auth/CustomerRegistrationLoginTest.php`: 14/14 tests lulus (63 assertions).
+  - `npm run build`: Berhasil tanpa error (3.60s).
+- **Yang belum selesai / blocker:**
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Verifikasi visual di browser Chrome oleh pengguna.
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):**
+  `feat(US-08): implement customer registration, login with rate limiting, and google phone completion`
+
