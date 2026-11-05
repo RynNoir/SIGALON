@@ -20,6 +20,12 @@ Route::post('/keluar', [CustomerAuthController::class, 'logout'])->name('custome
 Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
+// [US-08] Pelanggan: lengkapi nomor telepon akun Google/pelanggan
+Route::middleware(['auth:pelanggan'])->group(function () {
+    Route::get('/pelanggan/lengkapi-telepon', [CustomerAuthController::class, 'showCompletePhoneForm'])->name('customer.phone.edit');
+    Route::post('/pelanggan/lengkapi-telepon', [CustomerAuthController::class, 'updatePhone'])->name('customer.phone.update');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('dashboard', 'pages::dashboard')->name('dashboard');
     Route::livewire('dashboard/cabang/{cabang}', 'pages::dashboard-cabang')->name('dashboard.cabang');
