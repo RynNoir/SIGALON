@@ -67,6 +67,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // [US-09] Kasir: input transaksi walk-in & galon baru
     Route::livewire('kasir/transaksi', 'pages::kasir.transaksi')->name('kasir.transaksi');
+
+    // [US-10] Kasir: input pesanan COD manual
+    Route::livewire('kasir/cod', 'pages::kasir.pesanan-cod')->name('kasir.pesanan-cod');
 });
 
 require __DIR__.'/settings.php';
