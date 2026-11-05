@@ -104,6 +104,8 @@ Diperbarui 25 Oktober 2026 dari hasil Sprint 1 (US-01–US-04).
 - **US-09:** walk-in langsung berstatus `selesai`, `tanggal` = hari ini, `dicatat_oleh` = Kasir yang login, `cabang_id` = cabang Kasir. Galon baru hanya untuk walk-in.
 - **US-10, US-11:** COD berstatus awal `diproses`. COD manual mengisi `nama_pemesan`, `no_hp_pemesan`, `alamat_antar`; COD online juga mengisi `pelanggan_id` dan mengosongkan `dicatat_oleh` (ERD). Akun Google wajib melengkapi `no_hp` dan `alamat` pada pesanan pertama.
 - **US-12:** tabel RIWAYAT_STATUS belum ada. Simpan perubahan status dan riwayat dalam satu transaksi database. Pembatalan hanya dari `diproses` dan wajib alasan. Kurir yang dipilih harus aktif dan berasal dari cabang yang sama.
+- **US-10, US-11 (ditambahkan 5 Nov 2026):** setelah menyimpan pesanan COD, panggil `StatusPesananService::catatStatusAwal($pesanan, $pengubah)` dalam satu `DB::transaction` yang sama. `$pengubah` = Kasir yang login (US-10) atau pelanggan pemilik pesanan (US-11). Perhitungan harga US-09 masih ditulis di halaman Livewire-nya dan belum menjadi fungsi bersama.
+- **US-12 bagian UI (ditambahkan 5 Nov 2026):** jangan mengubah `status` atau `kurir_id` pesanan langsung. Pakai `ubahStatus()`, `batalkan()`, dan `tugaskanKurir()` dari `App\Services\StatusPesananService`. Otorisasi dan aturan transisi sudah ada di sana; tampilkan pesan dari `ValidationException`. Method mengembalikan model terbaru.
 - **US-14:** PRD melarang tabel pengaturan; sepakati lokasi file gambar QR dulu.
 - **US-15:** batasi query dengan `cabang_id` milik pengguna. Super Admin tidak termasuk peran story ini kecuali PO meminta.
 
@@ -146,3 +148,36 @@ Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/fea
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):**
   `feat(US-09): implement walk-in and new gallon transaction input for cashier`
+
+### US-12 — Riwayat status dan aturan pesanan COD (bagian backend)
+- **Tanggal:** 5 November 2026
+- **Story/Task:** US-12 task 12, branch `feature/US-12-penugasan-status-pesanan`. Task 13–14 (UI) belum dikerjakan.
+- **Dikerjakan oleh:** Reyhan (PIC) dengan bantuan AI (Claude Code)
+- **Keputusan yang dipakai (disetujui Reyhan, 5 Nov 2026):**
+  - Kasir dan Admin Cabang di cabangnya serta Kurir yang ditugaskan boleh memajukan status. Tanpa ini COD tidak bisa `selesai` sampai Android tersedia di Sprint 4. **Perlu konfirmasi PO.**
+  - Kurir wajib ditugaskan sebelum `dijemput` dan hanya boleh diganti selama `diproses`.
+  - Super Admin tidak mengelola pesanan.
+  - `riwayat_status` hanya memiliki `created_at`, mengikuti ERD. PRD §8 menyebut semua tabel memakai `created_at` dan `updated_at`, jadi kalimat itu perlu diselaraskan.
+  - Folder baru `app/Services` disetujui.
+- **Asumsi tambahan:** alasan pembatalan maksimal 500 karakter, karena PRD tidak menetapkan batas.
+- **Perubahan:**
+  - Migration `create_riwayat_status_table`, model `RiwayatStatus`, `RiwayatStatusFactory`, dan relasi `Transaksi::riwayatStatus()`.
+  - `StatusTransaksi::bolehBerubahKe()` berisi transisi COD. Transisi canvassing ditambahkan di US-16.
+  - `App\Services\StatusPesananService`: `catatStatusAwal()`, `ubahStatus()`, `batalkan()`, `tugaskanKurir()`.
+- **Acceptance criteria yang lulus (diuji otomatis):**
+  - Status hanya maju berurutan; lompat, mundur, dan perubahan dari status akhir ditolak.
+  - Pembatalan hanya dari `diproses` dan wajib disertai alasan.
+  - Kurir yang dipilih harus aktif, berperan Kurir, dan dari cabang yang sama.
+  - Setiap perubahan status tersimpan di `riwayat_status` dalam satu transaksi database dengan perubahan statusnya.
+  - Staf cabang lain, Super Admin, dan pelanggan yang bukan pemilik pesanan ditolak.
+- **Tes dan hasil:**
+  - `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 254/254 (970 assertions).
+  - `tests/Feature/Transaksi/StatusPesananServiceTest.php`: 59/59 (225 assertions).
+  - `npm run build` berhasil.
+- **Yang belum selesai / blocker:**
+  - Task 13–14: halaman daftar pesanan, pilihan kurir, dan tombol batal. Task 15 (feature test lewat halaman) mengikuti UI.
+  - Migration dan kunci baris belum diuji di MariaDB karena server tidak menyala saat pengujian. SQLite di tes mengabaikan kunci baris.
+  - Reviewer belum ditunjuk (DoD no. 8).
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** IN_PROGRESS
+- **Saran pesan commit (tidak dijalankan):** `feat(US-12): add status history and COD order status service`
