@@ -33,6 +33,21 @@ enum StatusTransaksi: string
     }
 
     /**
+     * Transisi COD yang diizinkan (ERD v1.1): hanya maju berurutan, dan batal hanya dari `diproses`.
+     */
+    public function bolehBerubahKe(self $statusBaru): bool
+    {
+        $tujuan = match ($this) {
+            self::Diproses => [self::Dijemput, self::Dibatalkan],
+            self::Dijemput => [self::Diantar],
+            self::Diantar => [self::Selesai],
+            default => [],
+        };
+
+        return in_array($statusBaru, $tujuan, true);
+    }
+
+    /**
      * Status yang dihitung sebagai pendapatan dan transaksi sah (PRD §6): walk-in/COD selesai, canvassing tervalidasi.
      *
      * @return list<self>

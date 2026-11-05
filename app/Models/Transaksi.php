@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 /**
@@ -150,5 +151,15 @@ class Transaksi extends Model
     public function verifikator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'diverifikasi_oleh');
+    }
+
+    /**
+     * Riwayat perubahan status, dari yang paling awal.
+     *
+     * @return HasMany<RiwayatStatus, $this>
+     */
+    public function riwayatStatus(): HasMany
+    {
+        return $this->hasMany(RiwayatStatus::class)->orderBy('id');
     }
 }
