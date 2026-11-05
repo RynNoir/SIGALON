@@ -70,6 +70,13 @@
                     wire:navigate>
                     {{ __('Transaksi Walk-in') }}
                 </flux:sidebar.item>
+
+                <flux:sidebar.item icon="truck" :href="route('kasir.pesanan-cod')"
+                    :current="request()->routeIs('kasir.pesanan-cod*')"
+                    class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
+                    wire:navigate>
+                    {{ __('Pesanan COD') }}
+                </flux:sidebar.item>
             @endif
         </flux:sidebar.nav>
 

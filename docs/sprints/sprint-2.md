@@ -212,3 +212,37 @@ Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/fea
 - **Saran pesan commit (tidak dijalankan):**
   `feat(US-08): implement customer registration, login with rate limiting, and google phone completion`
 
+### US-10 — Input pesanan COD manual oleh Kasir
+- **Tanggal:** 5 November 2026
+- **Story/Task:** US-10 task 6 & 7, branch `feature/US-10-input-pesanan-cod-manual-oleh-kasir`
+- **Dikerjakan oleh:** Shalwa (PIC) dengan bantuan AI (Antigravity)
+- **Perubahan:**
+  - Menambahkan halaman Livewire Volt `resources/views/pages/kasir/⚡pesanan-cod.blade.php` untuk formulir input pesanan COD manual (nama pemesan, nomor HP, alamat antar, stepper kuantitas galon, pilihan metode bayar tunai / QR statis).
+  - Menghitung total harga transaksi murni di sisi server dari `config('sigalon.harga.cod')` (Rp7.000 × kuantitas galon) dan mengabaikan nilai total/cabang manipulasi dari browser.
+  - Menyimpan transaksi ke tabel `transaksi` dengan field otomatis server: `jenis_kanal = Kanal::Cod`, `jenis_item = JenisItem::IsiUlang`, `status = StatusTransaksi::Diproses`, `pelanggan_id = null` (tanpa akun pelanggan), `kurir_id = null`, `dicatat_oleh = auth()->id()`, `cabang_id = auth()->user()->cabang_id`, dan `tanggal = CarbonImmutable::today()`.
+  - Mengintegrasikan pencatatan status awal ke tabel `riwayat_status` melalui `StatusPesananService::catatStatusAwal()` di dalam satu `DB::transaction` atomik.
+  - Menerapkan validasi: nama pemesan (2-100 karakter), no HP (9-20 digit angka), alamat antar (5-500 karakter), jumlah galon (1-500), dan metode bayar (enum `MetodePembayaran`).
+  - Otorisasi berlapis di setiap request Livewire (`mount` dan `hydrate`): hanya Kasir aktif dengan cabang aktif yang diizinkan; Super Admin, Admin Cabang, Kurir, Pelanggan, dan tamu ditolak.
+  - Mencegah double-submit dengan `wire:loading.attr="disabled"` pada tombol simpan, menampilkan kartu konfirmasi pesanan dengan ID pesanan, dan mereset formulir.
+  - Menambahkan route `kasir.pesanan-cod` pada blok `// [US-10]` di `routes/web.php` dan item menu `Pesanan COD` khusus Kasir di `resources/views/layouts/app/sidebar.blade.php`.
+  - Menulis 20 unit/feature test komprehensif di `tests/Feature/Kasir/PesananCodManualTest.php`.
+- **Acceptance criteria yang lulus:**
+  - Form nama pemesan, no HP, alamat antar, jumlah galon, metode bayar tersedia lengkap [LULUS].
+  - `pelanggan_id` dibiarkan kosong/null untuk COD manual [LULUS].
+  - Total dihitung otomatis dari konfigurasi `config('sigalon.harga.cod')` (Rp7.000 × jumlah) [LULUS].
+  - Status awal pesanan tersimpan sebagai `diproses` dan tercatat di tabel `riwayat_status` [LULUS].
+  - Otorisasi hanya Kasir aktif di cabangnya [LULUS].
+- **Tes dan hasil:**
+  - `php artisan test`: 288/288 tests lulus (1.121 assertions).
+  - `tests/Feature/Kasir/PesananCodManualTest.php`: 20/20 tests lulus (88 assertions).
+  - `vendor/bin/pint --dirty`: passed.
+  - `composer types:check` (PHPStan): passed (0 error).
+  - `npm run build`: passed (8.74s).
+- **Yang belum selesai / blocker:**
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Verifikasi visual di browser kasir.
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):**
+  `feat(US-10): implement manual COD order input for cashier`
+
