@@ -246,3 +246,54 @@ Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/fea
 - **Saran pesan commit (tidak dijalankan):**
   `feat(US-10): implement manual COD order input for cashier`
 
+### US-11 — Pelanggan memesan air galon secara online
+- **Tanggal:** 6 November 2026
+- **Story/Task:** US-11 task 8–11, branch `feature/US-11-pemesanan-online-pelanggan`
+- **Dikerjakan oleh:** Velisa (PIC) dengan bantuan AI (Antigravity)
+- **Perubahan:**
+  - Membuat halaman Livewire Volt `resources/views/pages/pelanggan/⚡pesan.blade.php` dengan layout khusus `layouts/pelanggan.blade.php` (tanpa sidebar staf, navbar ringkas pelanggan).
+  - Formulir pemesanan mencakup: pilih cabang aktif, stepper jumlah galon (1–20), alamat pengantaran (pre-fill dari profil), catatan opsional, pilih metode bayar (tunai/QR statis).
+  - Khusus akun Google (`no_hp = null`): form wajib mengisi nomor HP yang dinormalisasi dan divalidasi keunikannya via `CustomerPhoneService::normalize()` dan `ensurePhoneIsUnique()`. Nomor dan alamat disimpan ke profil di dalam `DB::transaction` yang sama.
+  - Menyimpan transaksi ke tabel `transaksi` dengan field otomatis: `jenis_kanal = Kanal::Cod`, `jenis_item = JenisItem::IsiUlang` (online hanya isi ulang, PRD §5), `status = StatusTransaksi::Diproses`, `pelanggan_id = $pelanggan->id`, `dicatat_oleh = null`, `kurir_id = null`, total dari `config('sigalon.harga.cod')`.
+  - Mencatat status awal via `StatusPesananService::catatStatusAwal($transaksi, $pelanggan)` dalam satu `DB::transaction` atomik.
+  - Pengaman double-submit: `wire:loading.attr="disabled"` di klien + `Cache::lock('order-pelanggan-{id}', 10)` di server (mengembalikan `ValidationException` pada lock yang gagal diperoleh).
+  - Menambahkan route `pelanggan.pesan` di blok `// [US-11]` dalam grup `auth:pelanggan` di `routes/web.php`.
+  - Memperbarui tombol CTA "Pesan Air Galon" di `resources/views/welcome.blade.php` dari WhatsApp URL ke `route('pelanggan.pesan')` (ikon shopping cart, tanpa `target="_blank"`, `data-test="hero-cta-pesan"`).
+  - Menulis 19 feature test di `tests/Feature/Pelanggan/PemesananOnlineTest.php`.
+- **Acceptance criteria yang lulus:**
+  - Pelanggan login (Google/nomor HP) dapat mengakses halaman pemesanan [LULUS].
+  - Tamu dan staf (guard `web`) diarahkan / ditolak [LULUS].
+  - Akun Google wajib melengkapi no HP; no HP duplikat ditolak dengan pesan PRD [LULUS].
+  - Cabang nonaktif ditolak di validasi [LULUS].
+  - Jumlah galon: minimal 1, maksimal 20 [LULUS].
+  - Total dihitung di server dari `config('sigalon.harga.cod')`, nilai browser diabaikan [LULUS].
+  - Riwayat status awal `diproses` tersimpan di `riwayat_status` dengan `diubah_oleh_pelanggan = $pelanggan->id` [LULUS].
+  - Pengaman double-submit via `Cache::lock` mencegah pesanan dobel [LULUS].
+  - Input berbahaya diescape saat ditampilkan (`{{ }}`) [LULUS].
+  - `jenis_item` selalu `IsiUlang`, tidak ada `GalonBaru` di pesanan online [LULUS].
+  - Alamat tersimpan ke profil pelanggan setelah pesanan pertama [LULUS].
+  - Form pre-fill dari profil pelanggan [LULUS].
+- **Tes dan hasil:**
+  - `php artisan test`: 307/307 tests lulus (1.174 assertions).
+  - `tests/Feature/Pelanggan/PemesananOnlineTest.php`: 19/19 tests lulus (53 assertions).
+  - `vendor/bin/pint --dirty`: passed.
+  - `vendor/bin/phpstan analyse --memory-limit=1G`: 0 error.
+  - `npm run build`: passed.
+- **File yang diubah (scope US-11):**
+  - `resources/views/pages/pelanggan/⚡pesan.blade.php` (baru)
+  - `resources/views/layouts/pelanggan.blade.php` (baru)
+  - `tests/Feature/Pelanggan/PemesananOnlineTest.php` (baru)
+  - `routes/web.php` (hanya blok `// [US-11]`)
+  - `resources/views/welcome.blade.php` (hanya baris tombol CTA hero)
+  - `docs/USER_STORIES_STATUS.md` (hanya baris US-11)
+- **Yang belum selesai / blocker:**
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Verifikasi visual di browser belum dilakukan.
+- **Pertanyaan terbuka untuk PO:**
+  1. Apakah batas maksimal 20 galon per pesanan online tepat untuk pengantaran motor? (Implementasi saat ini: 20)
+  2. Apakah alamat yang diisi pelanggan saat pesanan pertama otomatis disimpan ke profil (`pelanggan.alamat`) untuk pesanan berikutnya? (Implementasi saat ini: **ya**, selalu diperbarui jika berubah)
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):**
+  `feat(US-11): implement online gallon order form for pelanggan`
+
