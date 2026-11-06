@@ -21,9 +21,13 @@ Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])->
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
 
 // [US-08] Pelanggan: lengkapi nomor telepon akun Google/pelanggan
+// [US-11] Pelanggan: pesan air galon secara online
 Route::middleware(['auth:pelanggan'])->group(function () {
     Route::get('/pelanggan/lengkapi-telepon', [CustomerAuthController::class, 'showCompletePhoneForm'])->name('customer.phone.edit');
     Route::post('/pelanggan/lengkapi-telepon', [CustomerAuthController::class, 'updatePhone'])->name('customer.phone.update');
+
+    // [US-11] Pemesanan online air galon
+    Route::livewire('pelanggan/pesan', 'pages::pelanggan.pesan')->name('pelanggan.pesan');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

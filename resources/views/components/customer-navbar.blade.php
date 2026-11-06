@@ -58,9 +58,7 @@
 
         <div class="hidden md:flex items-center gap-3">
             <a
-                href="{{ $resolvedWhatsappUrl }}"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="{{ route('pelanggan.pesan') }}"
                 class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-xs transition hover:bg-primary-strong"
                 data-test="navbar-cta-order"
             >
@@ -193,9 +191,7 @@
         </a>
         <div class="pt-3 border-t border-line flex flex-col gap-2">
             <a
-                href="{{ $resolvedWhatsappUrl }}"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="{{ route('pelanggan.pesan') }}"
                 class="w-full text-center rounded-lg bg-primary py-2 text-sm font-semibold text-white shadow-xs"
             >
                 {{ __('Pesan Air Galon') }}
