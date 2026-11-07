@@ -274,4 +274,3 @@ class CustomerRegistrationLoginTest extends TestCase
             ->assertSee('&lt;b&gt;Nama XSS&lt;/b&gt;', false);
     }
 }
-
