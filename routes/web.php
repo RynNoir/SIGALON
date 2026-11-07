@@ -74,6 +74,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // [US-10] Kasir: input pesanan COD manual
     Route::livewire('kasir/cod', 'pages::kasir.pesanan-cod')->name('kasir.pesanan-cod');
+
+    // [US-12] Kasir & Admin Cabang: daftar pesanan, penugasan kurir, status, dan pembatalan
+    Route::livewire('cabang/pesanan', 'pages::cabang.pesanan')->name('cabang.pesanan');
 });
 
 require __DIR__.'/settings.php';

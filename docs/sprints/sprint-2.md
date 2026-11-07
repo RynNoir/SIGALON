@@ -107,6 +107,7 @@ Diperbarui 25 Oktober 2026 dari hasil Sprint 1 (US-01–US-04).
 - **US-10, US-11 (ditambahkan 5 Nov 2026):** setelah menyimpan pesanan COD, panggil `StatusPesananService::catatStatusAwal($pesanan, $pengubah)` dalam satu `DB::transaction` yang sama. `$pengubah` = Kasir yang login (US-10) atau pelanggan pemilik pesanan (US-11). Perhitungan harga US-09 masih ditulis di halaman Livewire-nya dan belum menjadi fungsi bersama.
 - **US-11 (ditambahkan 5 Nov 2026):** saat pelanggan akun Google melengkapi nomor HP pada pesanan pertama, gunakan `App\Services\CustomerPhoneService` (`normalize()` dan `ensurePhoneIsUnique($normalized, $pelanggan->id)`) agar validasi dan pesan penolakan duplikasi seragam persis dengan PRD §6.
 - **US-12 bagian UI (ditambahkan 5 Nov 2026):** jangan mengubah `status` atau `kurir_id` pesanan langsung. Pakai `ubahStatus()`, `batalkan()`, dan `tugaskanKurir()` dari `App\Services\StatusPesananService`. Otorisasi dan aturan transisi sudah ada di sana; tampilkan pesan dari `ValidationException`. Method mengembalikan model terbaru.
+- **US-13, US-15 (ditambahkan 7 Nov 2026):** halaman `cabang.pesanan` hanya memuat pesanan COD cabang pengguna tanpa filter tanggal; filter tanggal dan semua kanal masuk US-15. Pembatalan oleh pelanggan (US-13) cukup memanggil `StatusPesananService::batalkan($pesanan, $pelanggan, $alasan)`.
 - **US-14:** PRD melarang tabel pengaturan; sepakati lokasi file gambar QR dulu.
 - **US-15:** batasi query dengan `cabang_id` milik pengguna. Super Admin tidak termasuk peran story ini kecuali PO meminta.
 
@@ -296,4 +297,36 @@ Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/fea
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):**
   `feat(US-11): implement online gallon order form for pelanggan`
+
+### US-12 — Daftar pesanan, penugasan kurir, dan pembatalan (bagian UI)
+- **Tanggal:** 7 November 2026
+- **Story/Task:** US-12 task 13–15, branch `feature/US-12-ui-daftar-pesanan`. Task 12 (backend) sudah di `main` lewat PR #13.
+- **Dikerjakan oleh:** Reyhan (PIC) dengan bantuan AI (Claude Code). Di J-01, task 13–15 tercatat milik Shalwa, Nurul, dan Fikri.
+- **Keputusan yang dipakai (disetujui Reyhan, 7 Nov 2026):**
+  - Tab: Aktif (bawaan), Diproses, Dijemput, Diantar, Selesai, Dibatalkan; 10 pesanan per halaman.
+  - Pesanan yang masih berjalan urut dari terlama; selesai dan batal urut dari terbaru.
+  - Tanpa pembaruan otomatis; notifikasi pesanan baru menyusul di US-30.
+  - Tombol "Tambah Pesanan Manual" hanya untuk Kasir, karena form US-10 menolak Admin Cabang.
+- **Perubahan:**
+  - Halaman Livewire `resources/views/pages/cabang/⚡pesanan.blade.php`, route `cabang.pesanan` (`/cabang/pesanan`), dan menu "Daftar Pesanan" untuk Kasir dan Admin Cabang.
+  - `StatusTransaksi::statusBerikutnyaCod()` menjadi satu sumber urutan status; `bolehBerubahKe()` memakainya.
+  - Halaman ini juga memenuhi AC US-11 "pesanan masuk ke daftar Kasir & Admin Cabang" (task 11).
+- **Acceptance criteria yang lulus (diuji otomatis):**
+  - Memilih kurir aktif di cabangnya; kurir nonaktif dan kurir cabang lain ditolak.
+  - Status hanya maju berurutan; hanya tombol langkah berikutnya yang tampil; permintaan melompat ditolak.
+  - Pembatalan hanya saat `diproses` dan wajib alasan; alasan tampil di tab Dibatalkan.
+  - Setiap perubahan tersimpan di `riwayat_status`.
+  - Isolasi cabang: pesanan cabang lain tidak tampil dan aksinya mengembalikan 404. Super Admin dan pelanggan 403; Kurir ke akses ditolak; tamu ke login.
+- **Tes dan hasil:**
+  - `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 362/362 (1.387 assertions).
+  - `tests/Feature/Cabang/PesananTest.php`: 53 tes.
+  - `npm run build` berhasil.
+- **Yang belum selesai / blocker:**
+  - Belum diuji di MariaDB (migration `riwayat_status`, query jumlah per tab, kunci baris) karena server tidak menyala saat pengujian.
+  - Tampilan belum diperiksa di browser (desktop, ponsel, dan modal).
+  - Konfirmasi PO: Kasir dan Admin Cabang boleh memajukan status sampai Android tersedia.
+  - Reviewer belum ditunjuk (DoD no. 8).
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):** `feat(US-12): add order list with courier assignment, status updates, and cancellation`
 
