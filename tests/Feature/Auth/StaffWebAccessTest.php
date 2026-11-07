@@ -5,6 +5,7 @@ namespace Tests\Feature\Auth;
 use App\Models\Cabang;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class StaffWebAccessTest extends TestCase
@@ -165,6 +166,29 @@ class StaffWebAccessTest extends TestCase
             ->assertSee('Cabang Uji Satu')
             ->assertDontSee('Cabang Uji Dua')
             ->assertSee('Admin Cabang');
+    }
+
+    public function test_admin_cabang_finds_staff_menu_in_main_sidebar(): void
+    {
+        $html = $this->actingAs(User::factory()->adminCabang()->create())
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->getContent();
+
+        $sidebarUtama = Str::before($html, '</ui-sidebar>');
+
+        $this->assertStringContainsString('Kelola Staf', $sidebarUtama);
+        $this->assertSame(1, substr_count($html, route('cabang.staf.index')));
+    }
+
+    public function test_admin_layout_shows_no_placeholder_status_elements(): void
+    {
+        $this->actingAs(User::factory()->kasir()->create())
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('Terminal Kasir')
+            ->assertDontSee('Status Depot')
+            ->assertDontSee('Cari pesanan');
     }
 
     public function test_super_admin_sees_all_cabang_label(): void
