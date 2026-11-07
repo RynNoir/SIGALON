@@ -87,6 +87,15 @@
                     {{ __('Pesanan COD') }}
                 </flux:sidebar.item>
             @endif
+
+            @if ($currentUser->isAdminCabang() || $currentUser->role === \App\Enums\Role::Kasir)
+                <flux:sidebar.item icon="clipboard-document-list" :href="route('cabang.pesanan')"
+                    :current="request()->routeIs('cabang.pesanan')"
+                    class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
+                    wire:navigate>
+                    {{ __('Daftar Pesanan') }}
+                </flux:sidebar.item>
+            @endif
         </flux:sidebar.nav>
 
         <flux:spacer />

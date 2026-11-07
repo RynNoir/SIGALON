@@ -37,14 +37,21 @@ enum StatusTransaksi: string
      */
     public function bolehBerubahKe(self $statusBaru): bool
     {
-        $tujuan = match ($this) {
-            self::Diproses => [self::Dijemput, self::Dibatalkan],
-            self::Dijemput => [self::Diantar],
-            self::Diantar => [self::Selesai],
-            default => [],
-        };
+        return $statusBaru === $this->statusBerikutnyaCod()
+            || ($this === self::Diproses && $statusBaru === self::Dibatalkan);
+    }
 
-        return in_array($statusBaru, $tujuan, true);
+    /**
+     * Langkah maju COD berikutnya; null bila status sudah berakhir atau bukan status COD yang berjalan.
+     */
+    public function statusBerikutnyaCod(): ?self
+    {
+        return match ($this) {
+            self::Diproses => self::Dijemput,
+            self::Dijemput => self::Diantar,
+            self::Diantar => self::Selesai,
+            default => null,
+        };
     }
 
     /**
