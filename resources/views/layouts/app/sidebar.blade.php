@@ -95,6 +95,13 @@
                     wire:navigate>
                     {{ __('Daftar Pesanan') }}
                 </flux:sidebar.item>
+
+                <flux:sidebar.item icon="queue-list" :href="route('cabang.transaksi')"
+                    :current="request()->routeIs('cabang.transaksi*')"
+                    class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
+                    wire:navigate>
+                    {{ __('Transaksi') }}
+                </flux:sidebar.item>
             @endif
         </flux:sidebar.nav>
 

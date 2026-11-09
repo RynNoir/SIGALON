@@ -77,6 +77,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // [US-12] Kasir & Admin Cabang: daftar pesanan, penugasan kurir, status, dan pembatalan
     Route::livewire('cabang/pesanan', 'pages::cabang.pesanan')->name('cabang.pesanan');
+
+    // [US-15] Kasir & Admin Cabang: daftar transaksi cabang dengan filter
+    Route::livewire('cabang/transaksi', 'pages::cabang.transaksi')->name('cabang.transaksi');
 });
 
 require __DIR__.'/settings.php';
