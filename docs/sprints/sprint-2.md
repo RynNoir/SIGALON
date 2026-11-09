@@ -330,3 +330,45 @@ Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/fea
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):** `feat(US-12): add order list with courier assignment, status updates, and cancellation`
 
+### US-15 — Daftar transaksi cabang dengan filter
+- **Tanggal:** 9 November 2026
+- **Story/Task:** US-15 task 18 & 19, branch `feature/US-15-daftar-transaksi-cabang`
+- **Dikerjakan oleh:** Velisa (PIC) dengan bantuan AI (Antigravity)
+- **Keputusan yang dipakai:**
+  - Halaman baru mandiri di `resources/views/pages/cabang/⚡transaksi.blade.php`, route `cabang.transaksi` (`/cabang/transaksi`), tanpa menyenggol atau memperluas halaman pesanan COD milik US-12.
+  - Memuat SEMUA kanal transaksi cabang pengguna (`walk_in`, `cod`, `canvassing`), termasuk transaksi berstatus dibatalkan atau ditolak (tanpa scope `sah()`).
+  - Filter kanal memvalidasi nilai enum `Kanal`; filter status memvalidasi nilai enum `StatusTransaksi`; nilai ilegal diabaikan secara aman.
+  - Filter rentang tanggal memakai kolom `tanggal` dengan scope `antaraTanggal()`; jika tanggal awal lebih besar dari tanggal akhir, sistem menampilkan error validasi ramah tanpa crash 500 atau query rusak.
+  - Pagination 15 per halaman di sisi server via Livewire `WithPagination`; parameter filter dipertahankan saat navigasi halaman dan perubahan filter otomatis mereset halaman ke 1.
+  - Isolasi ketat cabang di server-side: query transaksi mengunci `where('cabang_id', auth()->user()->cabang_id)` murni dari akun staf yang login; manipulasi parameter/payload Livewire tidak pernah membocorkan data cabang lain.
+  - Bebas N+1 query: eager loading relasi `pencatat:id,name`, `pelanggan:id,nama,no_hp`, dan `kurir:id,name`.
+  - Otorisasi server-side diulang pada setiap siklus request Livewire (`mount` dan `hydrate`): hanya Kasir dan Admin Cabang aktif yang diizinkan; Super Admin, Kurir, Pelanggan, dan tamu ditolak; Kasir atau Admin Cabang dengan cabang null atau nonaktif mendapatkan pesan peringatan aman.
+  - Satu item menu "Transaksi" ditambahkan di `resources/views/layouts/app/sidebar.blade.php` khusus untuk Kasir dan Admin Cabang.
+- **Acceptance criteria yang lulus (diuji otomatis):**
+  - Kasir dan Admin Cabang melihat daftar transaksi cabangnya [LULUS].
+  - Filter kanal, status, dan rentang tanggal berfungsi individual maupun kombinasi [LULUS].
+  - Transaksi yang dibatalkan tetap tampil dengan badge status yang jelas [LULUS].
+  - Tombol reset filter mengembalikan daftar ke kondisi default [LULUS].
+  - Pagination 15 per halaman berjalan dan filter dipertahankan saat ganti halaman [LULUS].
+  - Isolasi cabang ketat: Admin Cabang/Kasir Cabang A tidak pernah melihat transaksi Cabang B [LULUS].
+  - Super Admin (403), Kurir (redirect akses ditolak), Pelanggan (403), dan tamu (redirect login) ditolak [LULUS].
+  - Staf tanpa cabang atau cabang nonaktif mendapatkan alert aman [LULUS].
+  - Bebas N+1 query (jumlah query tetap konstan terlepas dari jumlah baris) [LULUS].
+  - Menu "Transaksi" di sidebar tampil untuk Kasir dan Admin Cabang, tidak untuk peran lain [LULUS].
+  - Escaping XSS pada data nama pemesan terverifikasi aman [LULUS].
+- **Tes dan hasil:**
+  - `php artisan test`: 384/384 tests passed (1.450 assertions).
+  - `tests/Feature/Cabang/DaftarTransaksiTest.php`: 22/22 tests passed (63 assertions).
+  - `vendor\bin\phpstan analyse --memory-limit=1G`: 0 error.
+  - `vendor\bin\pint --dirty`: passed.
+  - `npm run build`: passed.
+- **Yang belum selesai / blocker:**
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Verifikasi visual di browser staf.
+- **Pertanyaan terbuka untuk PO:**
+  - Apakah Super Admin nantinya diizinkan melihat daftar transaksi per cabang atau lintas cabang pada halaman ini? (Saat ini Super Admin ditolak 403 sesuai AC US-15).
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):** `feat(US-15): add branch transaction list with filter and pagination`
+
+
