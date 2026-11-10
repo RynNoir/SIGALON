@@ -108,7 +108,7 @@ Diperbarui 25 Oktober 2026 dari hasil Sprint 1 (US-01–US-04).
 - **US-11 (ditambahkan 5 Nov 2026):** saat pelanggan akun Google melengkapi nomor HP pada pesanan pertama, gunakan `App\Services\CustomerPhoneService` (`normalize()` dan `ensurePhoneIsUnique($normalized, $pelanggan->id)`) agar validasi dan pesan penolakan duplikasi seragam persis dengan PRD §6.
 - **US-12 bagian UI (ditambahkan 5 Nov 2026):** jangan mengubah `status` atau `kurir_id` pesanan langsung. Pakai `ubahStatus()`, `batalkan()`, dan `tugaskanKurir()` dari `App\Services\StatusPesananService`. Otorisasi dan aturan transisi sudah ada di sana; tampilkan pesan dari `ValidationException`. Method mengembalikan model terbaru.
 - **US-13, US-15 (ditambahkan 7 Nov 2026):** halaman `cabang.pesanan` hanya memuat pesanan COD cabang pengguna tanpa filter tanggal; filter tanggal dan semua kanal masuk US-15. Pembatalan oleh pelanggan (US-13) cukup memanggil `StatusPesananService::batalkan($pesanan, $pelanggan, $alasan)`.
-- **US-14:** PRD melarang tabel pengaturan; sepakati lokasi file gambar QR dulu.
+- **US-14 (ditambahkan 10 Nov 2026):** lokasi penyimpanan gambar QR statis ditetapkan di disk public `storage/app/public/qr/` (`qr-statis.png`, dengan fallback `jpg`/`jpeg`/`webp`) dan dibaca melalui `App\Services\QrCodeService::getQrCodeUrl()`. Fitur unggah Super Admin (Task 17) dapat langsung menyimpan file ke direktori ini. Pastikan symlink `php artisan storage:link` sudah dibuat.
 - **US-15:** batasi query dengan `cabang_id` milik pengguna. Super Admin tidak termasuk peran story ini kecuali PO meminta.
 
 ## Definition of Done
@@ -370,5 +370,42 @@ Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/fea
 - **Reviewer:** belum ada
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):** `feat(US-15): add branch transaction list with filter and pagination`
+
+### US-14 — Pembayaran QR statis pada pemesanan online
+- **Tanggal:** 10 November 2026
+- **Story/Task:** US-14 Task 16 (Tampilkan gambar QR statis di halaman pemesanan bila metode QR), branch `feature/US-14-qr-statis`. Task 17 (fitur unggah/ganti gambar QR oleh Super Admin) dikerjakan di branch terpisah.
+- **Dikerjakan oleh:** Fikri (PIC) dengan bantuan AI (Antigravity)
+- **Keputusan yang dipakai:**
+  - File gambar QR statis disimpan pada storage disk `public` di path `qr/qr-statis.png` (dengan fallback ekstensi `.jpg`, `.jpeg`, `.webp`), diakses melalui service `App\Services\QrCodeService`.
+  - Halaman pemesanan online pelanggan `resources/views/pages/pelanggan/⚡pesan.blade.php` menampilkan gambar QR statis secara reaktif ketika metode QR dipilih, dan menyembunyikannya ketika metode tunai dipilih.
+  - Jika file gambar QR statis belum tersedia di storage, sistem menampilkan empty state ramah bernada netral: "QR pembayaran belum tersedia. Silakan pilih Tunai atau hubungi depot." tanpa pesan error atau broken image, dan tidak memblokir pelanggan melakukan pemesanan.
+  - Sesuai PRD §6 & §110, sistem menampilkan teks edukasi bahwa pembayaran QR tidak diverifikasi otomatis oleh sistem dan pelanggan diminta menyimpan bukti transfer untuk diperlihatkan kepada kurir saat tiba.
+  - Kartu konfirmasi pesanan berhasil (`$pesananBerhasil`) menampilkan gambar kode QR statis serta instruksi penyimpanan bukti bayar jika pesanan dibuat dengan metode QR.
+  - Pesanan dengan metode QR tersimpan dengan `metode_bayar = 'qr'`, `status = 'diproses'`, `diverifikasi_oleh = null`, dan `dicatat_oleh = null`, membuktikan pembayaran QR tidak dianggap terverifikasi otomatis.
+- **Acceptance criteria yang lulus (diuji otomatis):**
+  - Gambar QR statis tampil bila pelanggan memilih metode QR [LULUS].
+  - Area gambar QR statis tersembunyi bila pelanggan memilih metode Tunai [LULUS].
+  - Empty state ramah dan netral muncul bila file gambar QR belum diunggah [LULUS].
+  - Klausul pembayaran QR tidak diverifikasi otomatis tampil jelas di UI [LULUS].
+  - Nominal tagihan pada area QR dinamis mengikuti stepper jumlah galon [LULUS].
+  - Kartu konfirmasi berhasil menampilkan QR statis bila metode pesanan adalah QR [LULUS].
+  - Database mencatat pesanan QR dengan status awal diproses dan diverifikasi_oleh kosong [LULUS].
+- **Tes dan hasil:**
+  - `php -d memory_limit=512M vendor/phpunit/phpunit/phpunit`: 394/394 tests passed (1.486 assertions).
+  - `tests/Feature/Pelanggan/QrStatisPemesananTest.php`: 10/10 tests passed (36 assertions).
+  - `tests/Feature/Pelanggan/PemesananOnlineTest.php`: 19/19 tests passed (53 assertions).
+  - `vendor/bin/phpstan analyse --memory-limit=1G`: 0 error.
+  - `vendor/bin/pint --dirty`: passed.
+  - `npm run build`: passed (2.07s).
+- **Yang belum selesai / blocker:**
+  - Task 17: Fitur Super Admin unggah/ganti gambar QR (dikerjakan oleh PIC Reyhan di branch terpisah).
+  - Reviewer belum ditunjuk (DoD no. 8).
+  - Verifikasi visual di browser pelanggan.
+- **Pertanyaan terbuka untuk PO:**
+  - Apakah sistem perlu memvalidasi/memblokir pemilihan metode pembayaran QR jika Super Admin belum mengunggah file gambar QR ke storage? (Saat ini sistem tetap mengizinkan pemesanan dengan empty state netral).
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):** `feat(US-14): display static QR code for online orders with non-automatic verification notice`
+
 
 
