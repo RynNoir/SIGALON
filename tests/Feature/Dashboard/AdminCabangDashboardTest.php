@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Dashboard;
 
+use App\Enums\StatusTransaksi;
 use App\Models\Cabang;
 use App\Models\Pelanggan;
 use App\Models\Transaksi;
@@ -379,6 +380,57 @@ class AdminCabangDashboardTest extends TestCase
         // Saat mengganti periode pada request berikutnya, authorizeCabang() menolak akses
         $component->set('periode', 'bulan_ini');
         $component->assertForbidden();
+    }
+
+    // ─── Antrean pesanan dan data nyata ──────────────────────────────────
+
+    public function test_antrean_menghitung_pesanan_cod_berjalan_milik_cabang_sendiri(): void
+    {
+        $cabang = Cabang::factory()->create(['is_active' => true]);
+        $admin = User::factory()->adminCabang()->for($cabang)->create();
+        Transaksi::factory()->for($cabang)->cod(StatusTransaksi::Diproses)->create(['kurir_id' => null]);
+        Transaksi::factory()->for($cabang)->cod(StatusTransaksi::Diproses)->create();
+        Transaksi::factory()->for($cabang)->cod(StatusTransaksi::Dijemput)->create();
+        Transaksi::factory()->for($cabang)->cod(StatusTransaksi::Diantar)->create();
+        Transaksi::factory()->for($cabang)->cod(StatusTransaksi::Selesai)->create();
+        Transaksi::factory()->for($cabang)->cod(StatusTransaksi::Dibatalkan)->create();
+        Transaksi::factory()->for($cabang)->create();
+        Transaksi::factory()->for(Cabang::factory()->create())->cod(StatusTransaksi::Diproses)->create(['kurir_id' => null]);
+
+        $this->actingAs($admin);
+        $komponen = Livewire::test('pages::dashboard-cabang', ['cabang' => $cabang]);
+
+        $this->assertSame(['berjalan' => 4, 'menungguKurir' => 1, 'diantar' => 1], $komponen->instance()->antrean);
+        $komponen->assertSeeHtml('data-test="tautan-daftar-pesanan"');
+    }
+
+    public function test_super_admin_tidak_mendapat_tautan_daftar_pesanan(): void
+    {
+        $cabang = Cabang::factory()->create(['is_active' => true]);
+        $this->actingAs(User::factory()->superAdmin()->create());
+
+        Livewire::test('pages::dashboard-cabang', ['cabang' => $cabang])
+            ->assertSeeHtml('data-test="antrean-pesanan"')
+            ->assertDontSeeHtml('data-test="tautan-daftar-pesanan"');
+    }
+
+    public function test_dasbor_cabang_tidak_menampilkan_data_contoh_atau_rincian_yang_dikarang(): void
+    {
+        $cabang = Cabang::factory()->create(['is_active' => true]);
+        $admin = User::factory()->adminCabang()->for($cabang)->create();
+        Transaksi::factory()->for($cabang)->create(['jumlah_galon' => 10]); // Rp60.000
+
+        $this->actingAs($admin)
+            ->get(route('dashboard.cabang', $cabang))
+            ->assertOk()
+            ->assertSee('Rp60.000')
+            ->assertDontSee('#ORD-')
+            ->assertDontSee('Joko Santoso')
+            ->assertDontSee('Kasir Cepat')
+            ->assertDontSee('Pengeluaran Hari Ini')
+            ->assertDontSee('Verifikasi Setoran Canvassing')
+            ->assertDontSee('Rp38.400')
+            ->assertDontSee('Rp21.600');
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────
