@@ -8,6 +8,7 @@ use App\Models\Cabang;
 use App\Models\Pelanggan;
 use App\Models\Transaksi;
 use App\Services\CustomerPhoneService;
+use App\Services\QrCodeService;
 use App\Services\StatusPesananService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
@@ -60,7 +61,7 @@ class extends Component {
     /**
      * Data konfirmasi pesanan yang baru berhasil disimpan.
      *
-     * @var array{id: int, nama_pemesan: string, alamat_antar: string, cabang: string, jumlah: int, harga_satuan: int, total: int, metode: string, status: string, tanggal: string}|null
+     * @var array{id: int, nama_pemesan: string, alamat_antar: string, cabang: string, jumlah: int, harga_satuan: int, total: int, metode: string, metode_kode: string, status: string, tanggal: string}|null
      */
     public ?array $pesananBerhasil = null;
 
@@ -131,6 +132,15 @@ class extends Component {
     public function totalHarga(): int
     {
         return max(0, $this->jumlah_galon) * $this->hargaSatuan;
+    }
+
+    /**
+     * URL gambar QR statis dari storage disk public jika tersedia.
+     */
+    #[Computed]
+    public function qrCodeUrl(): ?string
+    {
+        return app(QrCodeService::class)->getQrCodeUrl();
     }
 
     public function pilihMetode(string $metode): void
@@ -298,6 +308,7 @@ class extends Component {
             'harga_satuan' => $hargaSatuan,
             'total' => $totalHargaServer,
             'metode' => $pesanan->metode_bayar->label(),
+            'metode_kode' => $pesanan->metode_bayar->value,
             'status' => $pesanan->status->label(),
             'tanggal' => CarbonImmutable::today()->translatedFormat('d F Y'),
         ];
@@ -352,6 +363,41 @@ class extends Component {
                         <span class="text-muted block mb-1">{{ __('Alamat Pengantaran:') }}</span>
                         <span class="text-ink font-medium leading-relaxed">{{ e($pesananBerhasil['alamat_antar']) }}</span>
                     </div>
+
+                    {{-- [US-14] Tampilan QR Statis pada Konfirmasi Berhasil bila memilih metode QR --}}
+                    @if ($pesananBerhasil['metode_kode'] === 'qr')
+                        <div class="pt-3 border-t border-line/60 space-y-3" data-test="konfirmasi-qr-statis">
+                            @if ($this->qrCodeUrl !== null)
+                                <div class="rounded-xl border border-line bg-white p-3.5 text-center shadow-2xs">
+                                    <span class="text-[11px] font-bold text-ink block mb-2">{{ __('Pindai Kode QRIS Depot') }}</span>
+                                    <div class="inline-block rounded-xl border border-line p-2 bg-white">
+                                        <img
+                                            src="{{ $this->qrCodeUrl }}"
+                                            alt="{{ __('Kode QRIS Statis Depot') }}"
+                                            class="mx-auto max-h-60 sm:max-h-64 w-auto object-contain rounded-lg"
+                                            data-test="konfirmasi-img-qr-statis"
+                                        />
+                                    </div>
+                                    <div class="mt-2">
+                                        <span class="text-[11px] text-muted block">{{ __('Total tagihan:') }}</span>
+                                        <span class="text-base font-extrabold text-primary">
+                                            {{ $this->rupiah($pesananBerhasil['total']) }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl border border-info/20 bg-info-soft/40 p-3 text-[11px] text-muted flex items-start gap-2">
+                                    <flux:icon.information-circle variant="mini" class="size-4 text-info shrink-0 mt-0.5" />
+                                    <span>{{ __('Pembayaran QR tidak diverifikasi otomatis. Simpan bukti transfer di ponsel Anda untuk diperlihatkan kepada kurir saat pesanan tiba.') }}</span>
+                                </div>
+                            @else
+                                <div class="rounded-xl border border-warning/30 bg-warning-soft/40 p-3 text-[11px] text-muted flex items-start gap-2" data-test="konfirmasi-empty-qr-statis">
+                                    <flux:icon.exclamation-triangle variant="mini" class="size-4 text-warning shrink-0 mt-0.5" />
+                                    <span>{{ __('QR pembayaran belum tersedia. Silakan pilih Tunai atau hubungi depot.') }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 </div>
 
                 <button
@@ -606,6 +652,49 @@ class extends Component {
                             @error('metode_bayar')
                                 <p class="mt-2 text-xs text-danger">{{ $message }}</p>
                             @enderror
+
+                            {{-- [US-14] Tampilan Gambar QR Statis bila metode QR dipilih --}}
+                            @if ($metode_bayar === 'qr')
+                                <div class="mt-5 pt-5 border-t border-line space-y-4" data-test="container-qr-statis">
+                                    @if ($this->qrCodeUrl !== null)
+                                        <div class="rounded-2xl border border-line bg-surface-low/50 p-4 sm:p-5 text-center">
+                                            <div class="inline-block rounded-2xl border border-line bg-white p-3.5 shadow-2xs">
+                                                <img
+                                                    src="{{ $this->qrCodeUrl }}"
+                                                    alt="{{ __('Kode QRIS Statis Depot CV. Aufa') }}"
+                                                    class="mx-auto max-h-72 sm:max-h-80 w-auto object-contain rounded-xl"
+                                                    data-test="img-qr-statis"
+                                                />
+                                            </div>
+
+                                            <div class="mt-3">
+                                                <span class="text-xs text-muted block">{{ __('Total tagihan:') }}</span>
+                                                <span class="text-lg font-black text-primary tracking-tight" data-test="qr-nominal-bayar">
+                                                    {{ $this->rupiah($this->totalHarga) }}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="rounded-xl border border-info/20 bg-info-soft/40 p-3 text-xs text-ink flex items-start gap-2.5">
+                                            <flux:icon.information-circle variant="mini" class="size-4 text-info shrink-0 mt-0.5" />
+                                            <div class="text-[11px] leading-relaxed text-muted">
+                                                <strong class="text-ink font-semibold">{{ __('Penting:') }}</strong>
+                                                {{ __('Pembayaran QR tidak diverifikasi otomatis oleh sistem. Cukup simpan bukti transfer di ponsel Anda dan perlihatkan kepada kurir saat galon tiba di alamat.') }}
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="rounded-2xl border border-warning/30 bg-warning-soft/40 p-4 flex items-start gap-3" data-test="empty-qr-statis">
+                                            <flux:icon.exclamation-triangle variant="mini" class="size-4 text-warning shrink-0 mt-0.5" />
+                                            <div>
+                                                <span class="text-xs font-bold text-ink block">{{ __('QR Pembayaran Belum Tersedia') }}</span>
+                                                <span class="text-[11px] text-muted block mt-0.5">
+                                                    {{ __('QR pembayaran belum tersedia. Silakan pilih Tunai atau hubungi depot.') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
 
                     </div>
