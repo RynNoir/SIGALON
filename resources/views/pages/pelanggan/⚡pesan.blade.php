@@ -56,7 +56,7 @@ class extends Component {
     /**
      * Data konfirmasi pesanan yang baru berhasil disimpan.
      *
-     * @var array{id: int, nama_pemesan: string, alamat_antar: string, cabang: string, jumlah: int, harga_satuan: int, total: int, metode: string, metode_kode: string, status: string, tanggal: string}|null
+     * @var array{id: int, nama_pemesan: string, alamat_antar: string, cabang: string, jumlah: int, harga_satuan: int, total: int, metode: string, metode_kode: string, qr_url: string|null, status: string, tanggal: string}|null
      */
     public ?array $pesananBerhasil = null;
 
@@ -130,12 +130,19 @@ class extends Component {
     }
 
     /**
-     * URL gambar QR statis dari storage disk public jika tersedia.
+     * URL gambar QR milik cabang yang dipilih (QR per cabang, keputusan PO 10 Nov 2026).
+     * Null bila cabang belum dipilih, tidak aktif, atau belum punya QR.
      */
     #[Computed]
     public function qrCodeUrl(): ?string
     {
-        return app(QrCodeService::class)->getQrCodeUrl();
+        if ($this->cabang_id === null) {
+            return null;
+        }
+
+        $cabang = Cabang::query()->where('is_active', true)->find($this->cabang_id);
+
+        return $cabang !== null ? app(QrCodeService::class)->getQrCodeUrl($cabang) : null;
     }
 
     public function pilihMetode(string $metode): void
@@ -301,6 +308,7 @@ class extends Component {
             'total' => $totalHargaServer,
             'metode' => $pesanan->metode_bayar->label(),
             'metode_kode' => $pesanan->metode_bayar->value,
+            'qr_url' => $pesanan->metode_bayar === MetodePembayaran::Qr ? app(QrCodeService::class)->getQrCodeUrl($cabang) : null,
             'status' => $pesanan->status->label(),
             'tanggal' => CarbonImmutable::today()->translatedFormat('d F Y'),
         ];
@@ -358,13 +366,13 @@ class extends Component {
                     {{-- [US-14] Tampilan QR Statis pada Konfirmasi Berhasil bila memilih metode QR --}}
                     @if ($pesananBerhasil['metode_kode'] === 'qr')
                         <div class="pt-3 border-t border-line/60 space-y-3" data-test="konfirmasi-qr-statis">
-                            @if ($this->qrCodeUrl !== null)
+                            @if ($pesananBerhasil['qr_url'] !== null)
                                 <div class="rounded-xl border border-line bg-white p-3.5 text-center shadow-2xs">
                                     <span class="text-[11px] font-bold text-ink block mb-2">{{ __('Pindai Kode QRIS Depot') }}</span>
                                     <div class="inline-block rounded-xl border border-line p-2 bg-white">
                                         <img
-                                            src="{{ $this->qrCodeUrl }}"
-                                            alt="{{ __('Kode QRIS Statis Depot') }}"
+                                            src="{{ $pesananBerhasil['qr_url'] }}"
+                                            alt="{{ __('Kode QRIS Statis :cabang', ['cabang' => $pesananBerhasil['cabang']]) }}"
                                             class="mx-auto max-h-60 sm:max-h-64 w-auto object-contain rounded-lg"
                                             data-test="konfirmasi-img-qr-statis"
                                         />
@@ -384,7 +392,7 @@ class extends Component {
                             @else
                                 <div class="rounded-xl border border-warning/30 bg-warning-soft/40 p-3 text-[11px] text-muted flex items-start gap-2" data-test="konfirmasi-empty-qr-statis">
                                     <flux:icon.exclamation-triangle variant="mini" class="size-4 text-warning shrink-0 mt-0.5" />
-                                    <span>{{ __('QR pembayaran belum tersedia. Silakan pilih Tunai atau hubungi depot.') }}</span>
+                                    <span>{{ __('QR pembayaran cabang ini belum tersedia. Silakan bayar tunai atau hubungi depot.') }}</span>
                                 </div>
                             @endif
                         </div>
@@ -547,7 +555,7 @@ class extends Component {
                                     </flux:label>
                                     <flux:select
                                         id="cabang_id"
-                                        wire:model="cabang_id"
+                                        wire:model.live="cabang_id"
                                         data-test="select-cabang"
                                     >
                                         <flux:select.option value="">{{ __('-- Pilih Depot Pengantar --') }}</flux:select.option>
@@ -632,7 +640,14 @@ class extends Component {
                             {{-- [US-14] Tampilan Gambar QR Statis bila metode QR dipilih --}}
                             @if ($metode_bayar === 'qr')
                                 <div class="mt-5 pt-5 border-t border-line space-y-4" data-test="container-qr-statis">
-                                    @if ($this->qrCodeUrl !== null)
+                                    @if ($cabang_id === null)
+                                        <div class="rounded-2xl border border-info/20 bg-info-soft/40 p-4 flex items-start gap-3" data-test="pilih-cabang-qr">
+                                            <flux:icon.information-circle variant="mini" class="size-4 text-info shrink-0 mt-0.5" />
+                                            <span class="text-[11px] text-muted">
+                                                {{ __('Pilih cabang depot terlebih dahulu. Setiap cabang memiliki QR pembayaran sendiri.') }}
+                                            </span>
+                                        </div>
+                                    @elseif ($this->qrCodeUrl !== null)
                                         <div class="rounded-2xl border border-line bg-surface-low/50 p-4 sm:p-5 text-center">
                                             <div class="inline-block rounded-2xl border border-line bg-white p-3.5 shadow-2xs">
                                                 <img
@@ -664,7 +679,7 @@ class extends Component {
                                             <div>
                                                 <span class="text-xs font-bold text-ink block">{{ __('QR Pembayaran Belum Tersedia') }}</span>
                                                 <span class="text-[11px] text-muted block mt-0.5">
-                                                    {{ __('QR pembayaran belum tersedia. Silakan pilih Tunai atau hubungi depot.') }}
+                                                    {{ __('QR pembayaran cabang ini belum tersedia. Silakan pilih Tunai atau hubungi depot.') }}
                                                 </span>
                                             </div>
                                         </div>
