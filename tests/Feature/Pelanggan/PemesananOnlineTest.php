@@ -51,7 +51,6 @@ class PemesananOnlineTest extends TestCase
             'cabang_id' => $cabang->id,
             'jumlah_galon' => 2,
             'alamat_antar' => 'Jl. Raya Padang No. 10 RT 02 RW 05 Kec. Kuranji',
-            'catatan' => '',
             'metode_bayar' => 'tunai',
         ];
     }
@@ -362,6 +361,33 @@ class PemesananOnlineTest extends TestCase
         $this->assertNotNull($transaksi);
         // Memastikan data DB tidak menyimpan HTML entitas (disimpan raw, escaped saat render)
         $this->assertStringContainsString('<script>', $transaksi->alamat_antar);
+    }
+
+    public function test_kartu_konfirmasi_menampilkan_alamat_ter_escape_satu_kali(): void
+    {
+        $pelanggan = $this->pelangganDenganHp();
+        $cabang = Cabang::factory()->create(['is_active' => true, 'nama' => "Cabang O'Neil & Co"]);
+        $alamat = 'Jl. Cempaka & Melati <b>No. 5</b>';
+
+        Livewire::actingAs($pelanggan, 'pelanggan')
+            ->test('pages::pelanggan.pesan')
+            ->set('cabang_id', $cabang->id)
+            ->set('jumlah_galon', 1)
+            ->set('alamat_antar', $alamat)
+            ->set('metode_bayar', 'tunai')
+            ->call('simpan')
+            ->assertHasNoErrors()
+            ->assertSee($alamat)
+            ->assertSee("Cabang O'Neil & Co")
+            ->assertDontSeeHtml('&amp;amp;')
+            ->assertDontSeeHtml('<b>No. 5</b>');
+    }
+
+    public function test_form_tidak_lagi_meminta_catatan_yang_tidak_tersimpan(): void
+    {
+        Livewire::actingAs($this->pelangganDenganHp(), 'pelanggan')
+            ->test('pages::pelanggan.pesan')
+            ->assertDontSeeHtml('data-test="input-catatan"');
     }
 
     // -------------------------------------------------------------------------

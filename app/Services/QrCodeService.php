@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 
 class QrCodeService
 {
@@ -48,6 +50,7 @@ class QrCodeService
 
     /**
      * Mengembalikan URL publik gambar QR statis jika tersedia, atau null jika belum diunggah.
+     * Parameter versi mencegah browser menampilkan gambar lama setelah QR diganti.
      */
     public function getQrCodeUrl(): ?string
     {
@@ -57,6 +60,34 @@ class QrCodeService
             return null;
         }
 
-        return Storage::disk('public')->url($path);
+        $disk = Storage::disk('public');
+
+        return $disk->url($path).'?v='.$disk->lastModified($path);
+    }
+
+    /**
+     * Simpan gambar QR baru (US-14 task 17) lalu hapus file QR lama dengan ekstensi lain,
+     * supaya hanya satu gambar yang dipakai halaman pemesanan.
+     */
+    public function replaceQrCode(UploadedFile $file): string
+    {
+        $extension = strtolower($file->extension());
+        $fileName = 'qr-statis.'.(in_array($extension, ['png', 'jpg', 'jpeg', 'webp'], true) ? $extension : 'png');
+
+        $path = $file->storeAs('qr', $fileName, 'public');
+
+        if ($path === false) {
+            throw new RuntimeException('Gambar QR gagal disimpan.');
+        }
+
+        $disk = Storage::disk('public');
+
+        foreach (self::CANDIDATE_PATHS as $candidate) {
+            if ($candidate !== $path) {
+                $disk->delete($candidate);
+            }
+        }
+
+        return $path;
     }
 }

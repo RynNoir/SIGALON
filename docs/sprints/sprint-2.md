@@ -407,5 +407,29 @@ Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/fea
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):** `feat(US-14): display static QR code for online orders with non-automatic verification notice`
 
+### Penyelesaian Sprint 2 — US-14 task 17 dan perbaikan setelah analisis
+- **Tanggal:** 10 November 2026
+- **Story/Task:** US-14 task 17, perbaikan US-11 dan US-05, branch `fix/sprint-2-penyelesaian`
+- **Dikerjakan oleh:** Reyhan (PIC task 17) dengan bantuan AI (Claude Code)
+- **Perubahan:**
+  - **US-14 task 17:** halaman Livewire `resources/views/pages/admin/⚡qr-statis.blade.php`, route `admin.qr-statis` (`/admin/qr-statis`), dan menu "Gambar QR" khusus Super Admin. Validasi PNG/JPG/WEBP maksimal 2 MB (SVG ditolak). `QrCodeService::replaceQrCode()` menyimpan file baru lalu menghapus file QR lama berekstensi lain; `getQrCodeUrl()` kini menambahkan `?v=` agar browser tidak menampilkan gambar lama.
+  - **US-11:** kolom catatan dihapus dari form pemesanan karena isinya tidak pernah tersimpan (ERD TRANSAKSI tidak punya kolom catatan; keputusan Reyhan 10 Nov 2026). Contoh alamat kini menyebut patokan lokasi. Kartu konfirmasi tidak lagi memakai `{{ e(...) }}` yang membuat `&` dan tanda kutip tampil sebagai `&amp;`/`&#039;`.
+  - **US-05:** data contoh yang ditulis langsung di `⚡dashboard-cabang.blade.php` dihapus: tabel pesanan, setoran canvassing, kasir cepat, pengeluaran, tombol tanpa fungsi, rincian Tunai/QRIS yang dihitung 64%/36% dari pendapatan, dan angka antrean/verifikasi palsu. Kartu antrean kini menghitung pesanan COD berjalan sungguhan (menunggu kurir, sedang diantar) dengan tautan ke Daftar Pesanan untuk Admin Cabang. Perbaikan `65442a3` di branch US-05 tidak diperlukan lagi.
+- **Acceptance criteria yang lulus (diuji otomatis):**
+  - US-14: Super Admin dapat mengunggah dan mengganti gambar QR; peran lain ditolak; file tidak sah ditolak tanpa menyimpan apa pun; ukuran tepat 2 MB diterima.
+  - US-11: alamat dan nama cabang di kartu konfirmasi ter-escape satu kali; form tidak lagi meminta catatan.
+  - US-05: antrean hanya menghitung pesanan COD berjalan milik cabang sendiri; data contoh tidak tampil.
+- **Tes dan hasil:**
+  - `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 414/414 (1.550 assertions).
+  - Tes dasbor, QR, pelanggan, dan cabang juga lulus di MariaDB 10.4 (183/183, database sementara).
+  - `npm run build` berhasil.
+- **Yang belum selesai / blocker:**
+  - Cek visual di browser (halaman QR, dasbor cabang, form pesanan).
+  - Reviewer belum ditunjuk (DoD no. 8).
+- **Langkah setelah merge:** `php artisan storage:link` (sekali per komputer), `npm run build`.
+- **Reviewer:** belum ada
+- **Status yang diusulkan:** US-14 REVIEW (task 16 dan 17 selesai)
+- **Saran pesan commit (tidak dijalankan):** lihat laporan handoff
+
 
 

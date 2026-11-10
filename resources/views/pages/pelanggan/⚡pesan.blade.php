@@ -39,11 +39,6 @@ class extends Component {
     public string $alamat_antar = '';
 
     /**
-     * Catatan tambahan dari pelanggan (opsional).
-     */
-    public string $catatan = '';
-
-    /**
      * Metode pembayaran: 'tunai' atau 'qr'.
      */
     public string $metode_bayar = 'tunai';
@@ -169,7 +164,6 @@ class extends Component {
     {
         $this->pesananBerhasil = null;
         $this->jumlah_galon = 1;
-        $this->catatan = '';
         $this->metode_bayar = 'tunai';
     }
 
@@ -187,7 +181,6 @@ class extends Component {
             'cabang_id' => ['required', 'integer', Rule::exists('cabang', 'id')->where('is_active', true)],
             'jumlah_galon' => ['required', 'integer', 'min:1', 'max:20'],
             'alamat_antar' => ['required', 'string', 'min:5', 'max:500'],
-            'catatan' => ['nullable', 'string', 'max:255'],
             'metode_bayar' => ['required', 'string', Rule::enum(MetodePembayaran::class)],
         ];
 
@@ -213,7 +206,6 @@ class extends Component {
             'alamat_antar.required' => __('Alamat pengantaran wajib diisi.'),
             'alamat_antar.min' => __('Alamat pengantaran minimal 5 karakter.'),
             'alamat_antar.max' => __('Alamat pengantaran maksimal 500 karakter.'),
-            'catatan.max' => __('Catatan maksimal 255 karakter.'),
             'metode_bayar.required' => __('Pilih metode pembayaran.'),
             'metode_bayar.Illuminate\\Validation\\Rules\\Enum' => __('Metode pembayaran tidak sah.'),
             'phone.required' => __('Nomor HP wajib dilengkapi sebelum memesan.'),
@@ -316,7 +308,6 @@ class extends Component {
         // 8. Reset form untuk pesanan berikutnya
         $this->alamat_antar = $pelanggan->fresh()?->alamat ?? '';
         $this->jumlah_galon = 1;
-        $this->catatan = '';
         $this->metode_bayar = 'tunai';
         $this->phone = '';
         $this->cabang_id = null;
@@ -345,7 +336,7 @@ class extends Component {
                 <div class="mt-6 rounded-2xl bg-surface p-5 text-xs space-y-3 border border-line">
                     <div class="flex justify-between items-center">
                         <span class="text-muted">{{ __('Cabang Depot') }}</span>
-                        <span class="font-bold text-ink text-sm">{{ e($pesananBerhasil['cabang']) }}</span>
+                        <span class="font-bold text-ink text-sm">{{ $pesananBerhasil['cabang'] }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-muted">{{ __('Jumlah Isi Ulang') }}</span>
@@ -353,7 +344,7 @@ class extends Component {
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-muted">{{ __('Metode Pembayaran') }}</span>
-                        <span class="font-medium text-ink">{{ e($pesananBerhasil['metode']) }}</span>
+                        <span class="font-medium text-ink">{{ $pesananBerhasil['metode'] }}</span>
                     </div>
                     <div class="flex justify-between items-center pt-2.5 border-t border-line/60">
                         <span class="font-bold text-ink">{{ __('Total Bayar saat Tiba') }}</span>
@@ -361,7 +352,7 @@ class extends Component {
                     </div>
                     <div class="pt-2.5 border-t border-line/60">
                         <span class="text-muted block mb-1">{{ __('Alamat Pengantaran:') }}</span>
-                        <span class="text-ink font-medium leading-relaxed">{{ e($pesananBerhasil['alamat_antar']) }}</span>
+                        <span class="text-ink font-medium leading-relaxed">{{ $pesananBerhasil['alamat_antar'] }}</span>
                     </div>
 
                     {{-- [US-14] Tampilan QR Statis pada Konfirmasi Berhasil bila memilih metode QR --}}
@@ -578,25 +569,10 @@ class extends Component {
                                         id="alamat_antar"
                                         wire:model="alamat_antar"
                                         rows="3"
-                                        placeholder="{{ __('Contoh: Jl. Sudirman No. 12, RT 02 RW 03, Kelurahan Belakang Tangsi') }}"
+                                        placeholder="{{ __('Contoh: Jl. Sudirman No. 12, RT 02 RW 03, Kelurahan Belakang Tangsi, pagar hitam dekat masjid') }}"
                                         data-test="input-alamat"
                                     />
                                     <flux:error name="alamat_antar" />
-                                </flux:field>
-
-                                {{-- Catatan Kurir --}}
-                                <flux:field>
-                                    <flux:label for="catatan">
-                                        {{ __('Catatan Patokan Lokasi') }}
-                                        <span class="text-muted font-normal text-[11px]">({{ __('Opsional') }})</span>
-                                    </flux:label>
-                                    <flux:input
-                                        id="catatan"
-                                        wire:model="catatan"
-                                        placeholder="{{ __('Contoh: Pagar hitam, dekat warung Bu Ani, letakkan di teras') }}"
-                                        data-test="input-catatan"
-                                    />
-                                    <flux:error name="catatan" />
                                 </flux:field>
                             </div>
                         </div>
