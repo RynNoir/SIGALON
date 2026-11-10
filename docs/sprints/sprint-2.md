@@ -431,5 +431,31 @@ Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/fea
 - **Status yang diusulkan:** US-14 REVIEW (task 16 dan 17 selesai)
 - **Saran pesan commit (tidak dijalankan):** lihat laporan handoff
 
+### US-14 — Revisi: QR statis per cabang (keputusan PO)
+- **Tanggal:** 10 November 2026
+- **Story/Task:** US-14 revisi task 16–17, branch `feature/US-14-qr-per-cabang`. Dicatat sebagai progres Sprint 2 atas permintaan Reyhan.
+- **Dikerjakan oleh:** Reyhan dengan bantuan AI (Claude Code)
+- **Keputusan yang dipakai:**
+  - PO (10 Nov 2026): setiap cabang memakai QR statis sendiri, karena akun penerima QRIS bisa berbeda per cabang.
+  - Tidak ada QR bersama sebagai cadangan. Cabang tanpa QR menampilkan pesan netral agar uang tidak masuk ke akun cabang lain.
+  - Unggah tetap hanya oleh Super Admin (PRD §4). PRD §4, §7.D, dan §16 sudah diperbarui (disetujui Reyhan).
+- **Perubahan:**
+  - `QrCodeService`: semua method menerima `Cabang`; file disimpan di disk `public` sebagai `qr/cabang-{id}.{png|jpg|jpeg|webp}`; mengganti QR satu cabang hanya menghapus file lama cabang itu.
+  - Halaman `admin.qr-statis`: pilih cabang, unggah, dan kartu status QR setiap cabang (termasuk cabang nonaktif).
+  - Form pesanan pelanggan: QR mengikuti cabang yang dipilih; pilihan cabang kini `wire:model.live` agar QR langsung berganti; belum memilih cabang menampilkan ajakan memilih; kartu konfirmasi memakai QR cabang pesanan.
+  - Tes milik US-14 (`QrStatisPemesananTest.php`) disesuaikan dengan aturan baru.
+- **Acceptance criteria yang lulus (diuji otomatis):**
+  - Super Admin mengunggah/mengganti QR per cabang; cabang lain tidak tersentuh.
+  - QR yang tampil sesuai cabang yang dipilih dan berganti saat cabang diganti; cabang tanpa QR tidak memakai QR cabang lain atau QR bersama lama.
+  - Kartu konfirmasi menampilkan QR cabang pesanan.
+  - Validasi file dan otorisasi tetap sama.
+- **Tes dan hasil:** lihat laporan handoff dan baris US-14 di `USER_STORIES_STATUS.md`.
+- **Yang belum selesai / blocker:**
+  - Cek di browser, terutama QR yang langsung berganti saat cabang diganti (perilaku `wire:model.live` tidak bisa dibedakan oleh tes Livewire).
+  - Super Admin perlu mengunggah ulang QR untuk setiap cabang; file `qr/qr-statis.*` lama tidak dipakai lagi.
+  - Reviewer belum ditunjuk (DoD no. 8).
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):** `feat(US-14): store static QR per branch and show the selected branch QR`
+
 
 

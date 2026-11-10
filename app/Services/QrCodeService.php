@@ -2,36 +2,33 @@
 
 namespace App\Services;
 
+use App\Models\Cabang;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
+/**
+ * Gambar QR statis per cabang (keputusan PO 10 November 2026), disimpan di disk `public`
+ * sebagai `qr/cabang-{id}.{ekstensi}`. Tidak ada QR bersama sebagai cadangan, supaya
+ * pembayaran tidak masuk ke akun QRIS cabang lain.
+ */
 class QrCodeService
 {
     /**
-     * Daftar nama file kandidat QR statis di storage disk public.
+     * Ekstensi yang diterima, berurutan menurut prioritas bila lebih dari satu file ada.
      *
      * @var list<string>
      */
-    public const CANDIDATE_PATHS = [
-        'qr/qr-statis.png',
-        'qr/qr-statis.jpg',
-        'qr/qr-statis.jpeg',
-        'qr/qr-statis.webp',
-        'qr/qris-statis.png',
-        'qr/qris-statis.jpg',
-        'qr/qris-statis.jpeg',
-        'qr/qris-statis.webp',
-    ];
+    public const EXTENSIONS = ['png', 'jpg', 'jpeg', 'webp'];
 
     /**
-     * Mengembalikan path relatif file QR statis pada disk public jika tersedia.
+     * Mengembalikan path relatif file QR cabang pada disk public jika tersedia.
      */
-    public function getQrCodePath(): ?string
+    public function getQrCodePath(Cabang $cabang): ?string
     {
         $disk = Storage::disk('public');
 
-        foreach (self::CANDIDATE_PATHS as $path) {
+        foreach ($this->candidatePaths($cabang) as $path) {
             if ($disk->exists($path)) {
                 return $path;
             }
@@ -41,20 +38,20 @@ class QrCodeService
     }
 
     /**
-     * Memeriksa apakah file gambar QR statis sudah tersedia di storage disk public.
+     * Memeriksa apakah cabang sudah memiliki gambar QR.
      */
-    public function hasQrCode(): bool
+    public function hasQrCode(Cabang $cabang): bool
     {
-        return $this->getQrCodePath() !== null;
+        return $this->getQrCodePath($cabang) !== null;
     }
 
     /**
-     * Mengembalikan URL publik gambar QR statis jika tersedia, atau null jika belum diunggah.
+     * Mengembalikan URL publik QR cabang, atau null jika belum diunggah.
      * Parameter versi mencegah browser menampilkan gambar lama setelah QR diganti.
      */
-    public function getQrCodeUrl(): ?string
+    public function getQrCodeUrl(Cabang $cabang): ?string
     {
-        $path = $this->getQrCodePath();
+        $path = $this->getQrCodePath($cabang);
 
         if ($path === null) {
             return null;
@@ -66,13 +63,13 @@ class QrCodeService
     }
 
     /**
-     * Simpan gambar QR baru (US-14 task 17) lalu hapus file QR lama dengan ekstensi lain,
-     * supaya hanya satu gambar yang dipakai halaman pemesanan.
+     * Simpan gambar QR baru untuk satu cabang, lalu hapus file QR lama cabang itu yang berekstensi lain.
+     * QR cabang lain tidak tersentuh.
      */
-    public function replaceQrCode(UploadedFile $file): string
+    public function replaceQrCode(Cabang $cabang, UploadedFile $file): string
     {
         $extension = strtolower($file->extension());
-        $fileName = 'qr-statis.'.(in_array($extension, ['png', 'jpg', 'jpeg', 'webp'], true) ? $extension : 'png');
+        $fileName = 'cabang-'.$cabang->id.'.'.(in_array($extension, self::EXTENSIONS, true) ? $extension : 'png');
 
         $path = $file->storeAs('qr', $fileName, 'public');
 
@@ -82,12 +79,23 @@ class QrCodeService
 
         $disk = Storage::disk('public');
 
-        foreach (self::CANDIDATE_PATHS as $candidate) {
+        foreach ($this->candidatePaths($cabang) as $candidate) {
             if ($candidate !== $path) {
                 $disk->delete($candidate);
             }
         }
 
         return $path;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function candidatePaths(Cabang $cabang): array
+    {
+        return array_map(
+            fn (string $extension): string => 'qr/cabang-'.$cabang->id.'.'.$extension,
+            self::EXTENSIONS,
+        );
     }
 }

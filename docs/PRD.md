@@ -56,7 +56,7 @@ Target angka kuantitatif (misalnya waktu respons) **belum ditetapkan** (*Terbuka
 
 | Peran | Platform | Hak/kebutuhan utama |
 |---|---|---|
-| Super Admin | Website | Mengelola data cabang (nama, alamat, koordinat) dan akun Admin Cabang; mengunggah/mengganti gambar QR statis; melihat dashboard dan laporan lintas cabang |
+| Super Admin | Website | Mengelola data cabang (nama, alamat, koordinat) dan akun Admin Cabang; mengunggah/mengganti gambar QR statis per cabang; melihat dashboard dan laporan lintas cabang |
 | Admin Cabang | Website | Mengelola akun Kasir/Kurir di cabangnya; menugaskan kurir dan memantau status; membatalkan pesanan; mereset password pelanggan; mencatat pengeluaran; melihat rekap cabang |
 | Kasir | Website + Android | Mencatat walk-in dan galon baru; menginput COD manual; menugaskan kurir; membatalkan pesanan; memverifikasi canvassing; mereset password pelanggan; melihat daftar transaksi |
 | Kurir/Petugas Lapangan | Android | Melihat tugas miliknya; memperbarui status COD; mengonfirmasi pembayaran (tunai atau bukti QR); mencatat dan memperbaiki canvassing |
@@ -156,7 +156,7 @@ Data Admin Cabang, Kasir, dan Kurir dibatasi pada cabangnya, dan pembatasan ini 
 - Kasir/Admin Cabang menugaskan kurir aktif dari cabang yang sama.
 - Pelanggan, Kasir, atau Admin Cabang dapat membatalkan selama `diproses`.
 - Pelanggan melihat riwayat, status terkini, dan linimasa tahap demi tahap.
-- Bila memilih QR, halaman menampilkan gambar QR statis yang diunggah Super Admin.
+- Bila memilih QR, halaman menampilkan gambar QR statis per cabang yang diunggah Super Admin, sesuai cabang yang dipilih pelanggan (keputusan PO 10 November 2026). Cabang yang belum memiliki QR tidak memakai QR cabang lain.
 
 ### E. Pengiriman
 - Kurir hanya melihat tugas yang ditugaskan kepadanya.
@@ -312,6 +312,7 @@ User story baru boleh berstatus `DONE` jika:
 | Harga galon kosong dikonfigurasi Super Admin? | Tidak. Semua harga tetap di file konfigurasi |
 | Isi ulang dan galon kosong dalam satu transaksi? | Tidak. Satu transaksi satu jenis item |
 | QR statis mulai kapan? | Sprint 2 (US-14) |
+| Satu QR untuk semua cabang atau per cabang? | Per cabang, tanpa QR bersama sebagai cadangan (keputusan PO 10 November 2026) |
 | Pemulihan akun nomor HP | Reset manual oleh Kasir/Admin Cabang lewat `wa.me` |
 | Penautan akun Google dan nomor HP | Tidak digabung otomatis; nomor terdaftar ditolak |
 | Pesanan batal | Status `dibatalkan`, hanya dari `diproses` |
