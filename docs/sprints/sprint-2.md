@@ -457,5 +457,25 @@ Mengikuti PRD v1.2 §14. Tambahan sprint ini: setiap story diuji dengan unit/fea
 - **Status yang diusulkan:** REVIEW
 - **Saran pesan commit (tidak dijalankan):** `feat(US-14): store static QR per branch and show the selected branch QR`
 
+### US-08 — Perbaikan validasi nomor HP (temuan J-05)
+- **Tanggal:** 10 November 2026
+- **Story/Task:** perbaikan US-08, branch `fix/US-08-validasi-nomor-hp`
+- **Dikerjakan oleh:** Reyhan dengan bantuan AI (Claude Code); PIC US-08: Nurul
+- **Temuan yang diperbaiki (J-05 US-08, TC-07 dan TC-08):**
+  - Nomor berisi huruf (`abcdefghij`) diterima dan tersimpan sebagai nomor kosong.
+  - Nomor dengan spasi yang digitnya kurang dari 9 (`0812 3456`) diterima.
+  - Penyebab: batas `min:9`/`max:20` menghitung karakter sebelum nomor dibersihkan.
+- **Perubahan:**
+  - `CustomerPhoneService::rules()`: kolom nomor HP hanya boleh berisi angka dan pemisah (spasi, `-`, `+`, titik, kurung), lalu hasil normalisasinya wajib `62` diikuti 8–13 digit, sama dengan form pesanan US-11. Dipakai di registrasi dan pelengkapan nomor akun Google, dan semua galat form tetap tampil bersamaan.
+  - Pesan galat baru: "Format nomor HP tidak sah. Gunakan nomor seluler, misalnya 081234567890."
+  - Teks petunjuk di halaman "Lengkapi No. HP" disesuaikan.
+- **Perubahan perilaku:** batas atas turun dari 20 karakter menjadi 13 digit setelah awalan, mengikuti US-11. Nomor 20 digit yang sebelumnya diterima kini ditolak.
+- **Tes dan hasil:**
+  - `composer test`: Pint lulus, PHPStan 0 error, PHPUnit 429/429 (1.605 assertions).
+  - `tests/Feature/Auth/CustomerRegistrationLoginTest.php`: 24 tes, termasuk 6 nomor tidak sah, 3 nomor sah di batas, dan pelengkapan nomor akun Google.
+- **Yang belum selesai / blocker:** reviewer belum ditunjuk (DoD no. 8); cek di browser.
+- **Status yang diusulkan:** REVIEW
+- **Saran pesan commit (tidak dijalankan):** `fix(US-08): validate customer phone digits after normalization`
+
 
 

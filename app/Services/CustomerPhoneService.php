@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Pelanggan;
+use Closure;
 use Illuminate\Validation\ValidationException;
 
 class CustomerPhoneService
@@ -11,6 +12,13 @@ class CustomerPhoneService
      * Pesan penolakan resmi sesuai PRD v1.2 §6 dan Sprint 2 Backlog US-08.
      */
     public const DUPLICATE_PHONE_MESSAGE = 'Nomor sudah terdaftar, silakan masuk dengan nomor HP atau hubungi depot.';
+
+    public const INVALID_FORMAT_MESSAGE = 'Format nomor HP tidak sah. Gunakan nomor seluler, misalnya 081234567890.';
+
+    /**
+     * Karakter yang boleh diketik pada kolom nomor HP: angka dan pemisah umum, tanpa huruf.
+     */
+    public const INPUT_PATTERN = '/^[0-9+\s\-().]+$/';
 
     /**
      * Standarisasi nomor telepon Indonesia (e.g., 0812 -> 62812, +62812 -> 62812, 812 -> 62812).
@@ -32,6 +40,28 @@ class CustomerPhoneService
         }
 
         return $digits;
+    }
+
+    /**
+     * Aturan validasi kolom nomor HP: hanya angka dan pemisah, lalu hasil normalisasinya wajib 62 diikuti 8–13 digit
+     * (sama dengan form pesanan US-11). Diperiksa setelah normalisasi agar spasi atau tanda hubung tidak dihitung sebagai digit.
+     *
+     * @return list<mixed>
+     */
+    public function rules(): array
+    {
+        return [
+            'bail',
+            'required',
+            'string',
+            'max:30',
+            'regex:'.self::INPUT_PATTERN,
+            function (string $attribute, mixed $value, Closure $fail): void {
+                if (preg_match('/^62[0-9]{8,13}$/', $this->normalize((string) $value)) !== 1) {
+                    $fail(__(self::INVALID_FORMAT_MESSAGE));
+                }
+            },
+        ];
     }
 
     /**

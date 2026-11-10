@@ -66,7 +66,7 @@
                                     <span class="text-sm font-semibold text-muted">+62</span>
                                 </x-slot>
                             </flux:input>
-                            <p class="mt-1 text-xs text-muted">{{ __('Masukkan nomor aktif (minimal 9 digit), diawali dengan 08 atau 8.') }}</p>
+                            <p class="mt-1 text-xs text-muted">{{ __('Masukkan nomor seluler aktif, diawali 08 atau 8, misalnya 081234567890.') }}</p>
                         </div>
 
                         <flux:button

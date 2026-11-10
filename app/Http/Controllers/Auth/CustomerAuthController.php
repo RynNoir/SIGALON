@@ -84,13 +84,13 @@ class CustomerAuthController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'min:9', 'max:20'],
+            'phone' => $this->phoneService->rules(),
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ], [
             'name.required' => __('Nama lengkap wajib diisi.'),
             'phone.required' => __('Nomor WhatsApp / HP wajib diisi.'),
-            'phone.min' => __('Nomor HP minimal terdiri dari 9 digit.'),
-            'phone.max' => __('Nomor HP maksimal terdiri dari 20 digit.'),
+            'phone.max' => __(CustomerPhoneService::INVALID_FORMAT_MESSAGE),
+            'phone.regex' => __(CustomerPhoneService::INVALID_FORMAT_MESSAGE),
             'password.required' => __('Kata sandi wajib diisi.'),
             'password.min' => __('Kata sandi minimal 8 karakter.'),
             'password.confirmed' => __('Konfirmasi kata sandi tidak cocok.'),
@@ -134,11 +134,11 @@ class CustomerAuthController extends Controller
         $pelanggan = Auth::guard('pelanggan')->user();
 
         $request->validate([
-            'phone' => ['required', 'string', 'min:9', 'max:20'],
+            'phone' => $this->phoneService->rules(),
         ], [
             'phone.required' => __('Nomor WhatsApp / HP wajib diisi.'),
-            'phone.min' => __('Nomor HP minimal terdiri dari 9 digit.'),
-            'phone.max' => __('Nomor HP maksimal terdiri dari 20 digit.'),
+            'phone.max' => __(CustomerPhoneService::INVALID_FORMAT_MESSAGE),
+            'phone.regex' => __(CustomerPhoneService::INVALID_FORMAT_MESSAGE),
         ]);
 
         $normalizedPhone = $this->phoneService->normalize($request->string('phone')->toString());

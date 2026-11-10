@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\CustomerPhoneService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class CustomerRegistrationLoginTest extends TestCase
@@ -257,6 +258,71 @@ class CustomerRegistrationLoginTest extends TestCase
             ->assertRedirect(route('home'));
 
         $this->assertSame('6281233334444', $customer->fresh()?->no_hp);
+    }
+
+    /**
+     * @return array<string, array{0: string}>
+     */
+    public static function nomorTidakSah(): array
+    {
+        return [
+            'berisi huruf saja' => ['abcdefghij'],
+            'campuran angka dan huruf' => ['0812abc34567'],
+            '8 digit' => ['08123456'],
+            '8 digit dengan spasi' => ['0812 3456'],
+            'lebih dari 13 digit setelah awalan' => ['081234567890123'],
+            'bukan awalan Indonesia' => ['12345678901'],
+        ];
+    }
+
+    #[DataProvider('nomorTidakSah')]
+    public function test_registration_rejects_invalid_phone_without_creating_account(string $nomor): void
+    {
+        $this->post(route('customer.register'), [
+            'name' => 'Pendaftar Uji',
+            'phone' => $nomor,
+            'password' => 'rahasia123',
+            'password_confirmation' => 'rahasia123',
+        ])->assertSessionHasErrors(['phone' => CustomerPhoneService::INVALID_FORMAT_MESSAGE]);
+
+        $this->assertGuest('pelanggan');
+        $this->assertDatabaseCount('pelanggan', 0);
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string}>
+     */
+    public static function nomorSahDiBatas(): array
+    {
+        return [
+            '9 digit (batas bawah)' => ['081234567', '6281234567'],
+            '14 digit (batas atas)' => ['08123456789012', '628123456789012'],
+            'dengan spasi dan tanda hubung' => ['+62 812-3456-7890', '6281234567890'],
+        ];
+    }
+
+    #[DataProvider('nomorSahDiBatas')]
+    public function test_registration_accepts_valid_phone_at_the_boundaries(string $nomor, string $tersimpan): void
+    {
+        $this->post(route('customer.register'), [
+            'name' => 'Pendaftar Uji',
+            'phone' => $nomor,
+            'password' => 'rahasia123',
+            'password_confirmation' => 'rahasia123',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('pelanggan', ['no_hp' => $tersimpan]);
+    }
+
+    public function test_google_customer_cannot_complete_phone_with_invalid_number(): void
+    {
+        $customer = Pelanggan::factory()->google()->create(['no_hp' => null]);
+
+        $this->actingAs($customer, 'pelanggan')
+            ->post(route('customer.phone.update'), ['phone' => 'abcdefghij'])
+            ->assertSessionHasErrors(['phone' => CustomerPhoneService::INVALID_FORMAT_MESSAGE]);
+
+        $this->assertNull($customer->fresh()?->no_hp);
     }
 
     public function test_customer_name_with_html_is_properly_escaped(): void
