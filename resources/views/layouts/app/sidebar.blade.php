@@ -61,6 +61,13 @@
                     wire:navigate>
                     {{ __('Admin Cabang') }}
                 </flux:sidebar.item>
+
+                <flux:sidebar.item icon="qr-code" :href="route('admin.qr-statis')"
+                    :current="request()->routeIs('admin.qr-statis')"
+                    class="data-current:border-transparent! data-current:bg-primary-strong! data-current:text-white!"
+                    wire:navigate>
+                    {{ __('Gambar QR') }}
+                </flux:sidebar.item>
             @endif
 
             @if ($currentUser->isAdminCabang())

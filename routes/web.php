@@ -51,6 +51,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::post('admin-cabang/{user}/reset-password', [AdminCabangController::class, 'resetPassword'])
             ->name('admin-cabang.reset-password.store');
+
+        // [US-14] Super Admin: unggah/ganti gambar QR statis
+        Route::livewire('qr-statis', 'pages::admin.qr-statis')->name('qr-statis');
     });
 
     // [US-07] Admin Cabang: kelola akun Kasir & Kurir

@@ -52,5 +52,7 @@
     "login using a recovery code": "masuk dengan kode pemulihan",
     "login using an authentication code": "masuk dengan kode autentikasi",
     "or you can": "atau Anda bisa",
-    "or, enter the code manually": "atau, masukkan kode secara manual"
+    "or, enter the code manually": "atau, masukkan kode secara manual",
+    "No file chosen": "Belum ada file dipilih",
+    "files": "file"
 }
